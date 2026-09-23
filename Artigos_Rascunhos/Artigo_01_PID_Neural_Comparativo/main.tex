@@ -1,0 +1,95 @@
+% ============================================================
+%  Artigo 01 — PID Clássico vs. Neural: Comparação em CSTR
+%  IC/PROIC-UESC — Template para Overleaf
+%  Baseado no estilo IEEE Transactions
+% ============================================================
+
+\documentclass[journal]{IEEEtran}
+
+% ---- Pacotes essenciais ----
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{amsmath, amssymb, amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{siunitx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{cite}
+
+% ---- Metadados ----
+\title{Comparative Analysis of Classical PID Tuning Methods and Neural Network-Based 
+Adaptive Control Orchestrated by Autonomous Agents in Simulated Chemical Processes}
+
+\author{%
+  Autor1~\IEEEmembership{Student Member, UESC},
+  Orientador~\IEEEmembership{Professor, UESC}%
+  \thanks{Apoio: CNPq / FAPESB / PROIC-UESC. Edital 34/2026.}%
+}
+
+\begin{document}
+
+\maketitle
+
+% ============================================================
+\begin{abstract}
+% TODO: Escrever abstract (150–250 palavras)
+% Deve cobrir: problema, abordagem, resultados principais, contribuição
+This paper presents a comparative analysis between classical PID tuning methods
+(Ziegler–Nichols, Cohen–Coon, Internal Model Control) and a neural network-based 
+adaptive PID controller orchestrated by an autonomous multi-agent system implemented 
+with LangGraph. The controllers are evaluated on a simulated non-isothermal 
+Continuous Stirred Tank Reactor (CSTR), a benchmark chemical process exhibiting 
+strong nonlinearities due to Arrhenius kinetics. Performance metrics including 
+Integral Absolute Error (IAE), Integral Time-weighted Absolute Error (ITAE), and 
+Total Variation (TV) of the manipulated variable are used for quantitative comparison 
+under setpoint tracking, load disturbance rejection, and parametric uncertainty scenarios.
+\end{abstract}
+
+\begin{IEEEkeywords}
+PID control, neural networks, adaptive control, multi-agent systems, LangGraph,
+CSTR, chemical process control, gain scheduling
+\end{IEEEkeywords}
+
+% ============================================================
+\section{Introduction}
+\label{sec:intro}
+\input{sections/01_introduction}
+
+% ============================================================
+\section{Mathematical Modeling of the CSTR}
+\label{sec:model}
+\input{sections/02_modeling}
+
+% ============================================================
+\section{Classical PID Tuning Methods}
+\label{sec:pid}
+\input{sections/03_pid_classical}
+
+% ============================================================
+\section{Neural Network-Based Adaptive PID}
+\label{sec:neural}
+\input{sections/04_neural_pid}
+
+% ============================================================
+\section{Multi-Agent Orchestration with LangGraph}
+\label{sec:agents}
+\input{sections/05_multiagent}
+
+% ============================================================
+\section{Results and Discussion}
+\label{sec:results}
+\input{sections/06_results}
+
+% ============================================================
+\section{Conclusion}
+\label{sec:conclusion}
+\input{sections/07_conclusion}
+
+% ============================================================
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}
