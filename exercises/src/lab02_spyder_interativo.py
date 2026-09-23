@@ -1,3 +1,33 @@
+# %% [0] Exibição das Figuras e Diagramas Esquemáticos do Trocador de Calor
+from pathlib import Path
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+
+# Resolução dinâmica do caminho da pasta 'figuras' (funciona no Spyder F5/F9 e no terminal)
+diretorio_base = Path(__file__).resolve().parent.parent if "__file__" in locals() else Path.cwd()
+pasta_figuras = diretorio_base / "figuras"
+if not pasta_figuras.exists():
+    pasta_figuras = Path("../figuras") if Path("../figuras").exists() else Path("figuras")
+
+# Figuras do processo
+arquivos_figuras = [
+    ("Figura 1: Esquema do Trocador de Calor e Malha de Controle", pasta_figuras / "trocador_calor_controle_temperatura.png"),
+    ("Figura 2: Dados Experimentais e Parâmetros (Parte 1)", pasta_figuras / "trocador_calor_controle_temperatura_dados_1.png"),
+    ("Figura 3: Dados Experimentais e Parâmetros (Parte 2)", pasta_figuras / "trocador_calor_controle_temperatura_dados_2.png"),
+]
+
+for titulo, caminho in arquivos_figuras:
+    if caminho.exists():
+        img = mpimg.imread(caminho)
+        plt.figure(figsize=(10, 6), dpi=150)
+        plt.imshow(img)
+        plt.title(titulo, fontsize=11, fontweight="bold")
+        plt.axis("off")
+        plt.tight_layout()
+        plt.show()
+    else:
+        print(f"Aviso: Imagem não encontrada em '{caminho}'")
+
 # %% [1] Importação das bibliotecas necessárias
 from pathlib import Path
 import matplotlib.pyplot as plt
@@ -116,9 +146,11 @@ print("TABELA COMPLETA DE VARIÁVEIS COMPUTADAS (LABORATÓRIO 02)")
 print("="*80)
 print(df.to_string(index=False))
 
-# Salvar arquivo com os resultados
-df.to_csv("resultados_trocador_calculados.csv", index=False)
-print("\nTabela salva com sucesso em 'resultados_trocador_calculados.csv'!")
+# Salvar arquivo com os resultados na pasta data/processed
+caminho_saida = diretorio_base / "data" / "processed" / "resultados_trocador_calculados.csv"
+caminho_saida.parent.mkdir(parents=True, exist_ok=True)
+df.to_csv(caminho_saida, index=False)
+print(f"\nTabela salva com sucesso em '{caminho_saida}'!")
 
 # %% [15] Gráficos de Análise e Interpretação
 
