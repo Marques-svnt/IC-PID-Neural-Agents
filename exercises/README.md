@@ -14,7 +14,12 @@ exercises/
 │   └── processed/                        # Dados calculados e resultados
 │       └── resultados_trocador_calculados.csv
 │
-├── plots/                                # Gráficos e figuras geradas
+├── figuras/                              # Imagens, esquemas do processo e enunciado
+│   ├── trocador_calor_controle_temperatura.png
+│   ├── trocador_calor_controle_temperatura_dados_1.png
+│   └── trocador_calor_controle_temperatura_dados_2.png
+│
+├── plots/                                # Gráficos e figuras geradas pelas simulações
 │   ├── grafico_1_temperatura_vs_tempo.png
 │   ├── grafico_2_taxa_variacao_temperatura.png
 │   ├── grafico_3_balanco_termico.png
