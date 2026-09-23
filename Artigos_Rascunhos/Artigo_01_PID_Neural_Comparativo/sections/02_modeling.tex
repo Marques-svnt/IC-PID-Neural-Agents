@@ -1,0 +1,51 @@
+% ============================================================
+%  Seção 2: Mathematical Modeling of the CSTR — Rascunho
+% ============================================================
+
+% TODO: Refinar com parâmetros definitivos acordados com orientador
+
+The non-isothermal CSTR with a first-order exothermic reaction $A \rightarrow B$ 
+is described by the following system of Ordinary Differential Equations (ODEs), 
+derived from mass and energy balances:
+
+\subsection{Concentration Balance}
+\begin{equation}
+    \frac{dC_A}{dt} = \frac{q}{V}(C_{Af} - C_A) - k_0 \exp\!\left(-\frac{E}{RT}\right) C_A
+    \label{eq:concentration}
+\end{equation}
+
+\subsection{Energy Balance}
+\begin{equation}
+    \frac{dT}{dt} = \frac{q}{V}(T_f - T) 
+    + \frac{(-\Delta H)}{\rho C_p} k_0 \exp\!\left(-\frac{E}{RT}\right) C_A 
+    + \frac{UA}{V\rho C_p}(T_c - T)
+    \label{eq:energy}
+\end{equation}
+
+where the controlled variable is the reactor temperature $T(t)$, the manipulated 
+variable is the coolant jacket temperature $T_c(t)$, and the load disturbances 
+are the feed concentration $C_{Af}$ and feed temperature $T_f$.
+
+\subsection{Nominal Operating Parameters}
+% TODO: Confirmar parâmetros com orientador
+Table~\ref{tab:params} summarizes the nominal parameters used in this study, 
+adapted from \cite{seborg2010process}.
+
+\begin{table}[h]
+    \centering
+    \caption{CSTR Nominal Parameters}
+    \label{tab:params}
+    \begin{tabular}{llll}
+        \toprule
+        Parameter & Symbol & Value & Unit \\
+        \midrule
+        Volumetric flow rate & $q$ & 100 & L/min \\
+        Reactor volume & $V$ & 100 & L \\
+        Pre-exponential factor & $k_0$ & $7.2 \times 10^{10}$ & min$^{-1}$ \\
+        Activation energy / R & $E/R$ & 8750 & K \\
+        Heat of reaction & $\Delta H$ & $-5\times10^4$ & cal/mol \\
+        Density $\times$ heat capacity & $\rho C_p$ & 500 & cal/(L$\cdot$K) \\
+        Heat transfer coeff. & $UA$ & $5\times10^4$ & cal/(min$\cdot$K) \\
+        \bottomrule
+    \end{tabular}
+\end{table}
