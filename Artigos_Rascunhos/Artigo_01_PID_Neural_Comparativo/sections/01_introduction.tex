@@ -1,0 +1,32 @@
+% ============================================================
+%  Seção 1: Introduction — Rascunho
+%  Preencher / refinar conforme revisão bibliográfica avança
+% ============================================================
+
+% TODO: Revisar e expandir
+Proportional-Integral-Derivative (PID) controllers remain the dominant control 
+strategy in the chemical process industry, accounting for over 90\% of regulatory 
+control loops \cite{astrom2006pid}. Despite their widespread adoption, classical 
+fixed-gain PID controllers face significant challenges in highly nonlinear processes 
+such as Continuous Stirred Tank Reactors (CSTRs), where Arrhenius kinetics introduce 
+exponential temperature-reaction coupling and the risk of thermal runaway 
+\cite{seborg2010process}.
+
+Recent advances in machine learning, particularly deep neural networks, have opened 
+new avenues for adaptive control that can dynamically adjust PID gains based on 
+real-time process states \cite{pid_neural_survey}. Furthermore, the emergence of 
+large language model-based agent frameworks such as LangGraph enables the orchestration 
+of specialized autonomous agents into coherent control pipelines, offering modular, 
+interpretable, and extensible control architectures.
+
+This paper makes the following contributions:
+\begin{enumerate}
+    \item A systematic comparison of three classical PID tuning methods (Ziegler–Nichols, 
+    Cohen–Coon, and IMC) on a simulated CSTR;
+    \item A neural network-based adaptive PID controller (Neuro-PID) implemented 
+    in PyTorch that dynamically adjusts gains based on process state;
+    \item A multi-agent orchestration framework using LangGraph that integrates 
+    telemetry, surrogate modeling, neural tuning, and safety verification;
+    \item Quantitative performance evaluation using IAE, ITAE, and TV metrics 
+    under standardized test scenarios.
+\end{enumerate}
