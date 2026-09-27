@@ -1,51 +1,61 @@
 % ============================================================
-%  Seção 2: Mathematical Modeling of the CSTR — Rascunho
+%  Section 2: Mathematical Modeling of the Non-linear CSTR
 % ============================================================
 
-% TODO: Refinar com parâmetros definitivos acordados com orientador
+\subsection{Non-linear Physical Plant Model}
+A continuous stirred tank reactor (CSTR) undergoing an irreversible, first-order exothermic reaction $A \xrightarrow{k} B$ is considered. To account for realistic heat exchange dynamics, the cooling jacket is modeled explicitly as a dynamic lumped system rather than assuming instantaneous jacket temperature control.
 
-The non-isothermal CSTR with a first-order exothermic reaction $A \rightarrow B$ 
-is described by the following system of Ordinary Differential Equations (ODEs), 
-derived from mass and energy balances:
+The non-linear system is governed by three coupled ordinary differential equations (ODEs) derived from dynamic mass and energy balances:
 
-\subsection{Concentration Balance}
+\begin{align}
+    \frac{dC_A}{dt} &= \frac{q}{V}(C_{Af} - C_A) - r_A(C_A, T) \label{eq:cstr_ca} \\
+    \frac{dT}{dt}   &= \frac{q}{V}(T_f - T) + \frac{(-\Delta H)}{\rho C_p} r_A(C_A, T) - \frac{UA}{V \rho C_p}(T - T_j) \label{eq:cstr_t} \\
+    \frac{dT_j}{dt} &= \frac{q_j}{V_j}(T_{jf} - T_j) + \frac{UA}{V_j \rho_j C_{pj}}(T - T_j) \label{eq:cstr_tj}
+\end{align}
+where the reaction rate $r_A(C_A, T)$ follows Arrhenius temperature dependency:
 \begin{equation}
-    \frac{dC_A}{dt} = \frac{q}{V}(C_{Af} - C_A) - k_0 \exp\!\left(-\frac{E}{RT}\right) C_A
-    \label{eq:concentration}
+    r_A(C_A, T) = k_0 \exp\left(-\frac{E}{R\,T}\right) C_A
+    \label{eq:arrhenius}
 \end{equation}
 
-\subsection{Energy Balance}
+In this formulation, the state vector is $\mathbf{x} = [C_A, T, T_j]^T$, where $C_A$ is the reactant concentration in the reactor, $T$ is the internal reactor temperature, and $T_j$ is the cooling jacket temperature. The manipulated variable is the coolant volumetric flow rate $u(t) = q_j(t)$. The primary controlled variable is the reactor temperature $y(t) = T(t)$.
+
+\subsection{Actuator Nonlinearity and Physical Saturation}
+Industrial control valves cannot deliver infinite flow rates or instantaneously switch valve positions. Consequently, the manipulated input $u(t) = q_j(t)$ is subjected to hard amplitude saturation and rate-of-change (slew rate) limits:
+\begin{align}
+    u_{\min} &\le q_j(t) \le u_{\max} \\
+    \left|\frac{dq_j}{dt}\right| &\le S_{\max}
+\end{align}
+where $u_{\min} = 0.0$~L/min (fully closed valve), $u_{\max} = 300.0$~L/min (maximum valve capacity), and $S_{\max} = 80.0$~L/min$^2$.
+
+\subsection{Nominal Operating Parameters and Equilibrium}
+The nominal physico-chemical parameters of the CSTR benchmark are summarized in Table~\ref{tab:cstr_parameters}. Under the nominal steady-state coolant flow rate $q_{j,ss} = 100.0$~L/min, the non-linear root-finding problem $\mathbf{f}(\mathbf{x}_{ss}, q_{j,ss}) = \mathbf{0}$ yields the nominal operating point:
 \begin{equation}
-    \frac{dT}{dt} = \frac{q}{V}(T_f - T) 
-    + \frac{(-\Delta H)}{\rho C_p} k_0 \exp\!\left(-\frac{E}{RT}\right) C_A 
-    + \frac{UA}{V\rho C_p}(T_c - T)
-    \label{eq:energy}
+    \mathbf{x}_{ss} = \begin{bmatrix} C_{A,ss} \\ T_{ss} \\ T_{j,ss} \end{bmatrix} = \begin{bmatrix} 0.0502\text{ mol/L} \\ 396.65\text{ K} \\ 348.33\text{ K} \end{bmatrix}
 \end{equation}
+which corresponds to a high conversion regime ($X_A \approx 95\%$) where the reactor is highly sensitive to thermal perturbations.
 
-where the controlled variable is the reactor temperature $T(t)$, the manipulated 
-variable is the coolant jacket temperature $T_c(t)$, and the load disturbances 
-are the feed concentration $C_{Af}$ and feed temperature $T_f$.
-
-\subsection{Nominal Operating Parameters}
-% TODO: Confirmar parâmetros com orientador
-Table~\ref{tab:params} summarizes the nominal parameters used in this study, 
-adapted from \cite{seborg2010process}.
-
-\begin{table}[h]
-    \centering
-    \caption{CSTR Nominal Parameters}
-    \label{tab:params}
-    \begin{tabular}{llll}
-        \toprule
-        Parameter & Symbol & Value & Unit \\
-        \midrule
-        Volumetric flow rate & $q$ & 100 & L/min \\
-        Reactor volume & $V$ & 100 & L \\
-        Pre-exponential factor & $k_0$ & $7.2 \times 10^{10}$ & min$^{-1}$ \\
-        Activation energy / R & $E/R$ & 8750 & K \\
-        Heat of reaction & $\Delta H$ & $-5\times10^4$ & cal/mol \\
-        Density $\times$ heat capacity & $\rho C_p$ & 500 & cal/(L$\cdot$K) \\
-        Heat transfer coeff. & $UA$ & $5\times10^4$ & cal/(min$\cdot$K) \\
-        \bottomrule
-    \end{tabular}
+\begin{table}[htbp]
+\centering
+\caption{Nominal physical and kinetic parameters of the simulated CSTR.}
+\label{tab:cstr_parameters}
+\begin{tabular}{llrl}
+\toprule
+Parameter & Symbol & Value & Unit \\
+\midrule
+Reactor volume & $V$ & $100.0$ & L \\
+Cooling jacket volume & $V_j$ & $20.0$ & L \\
+Process volumetric flow rate & $q$ & $100.0$ & L/min \\
+Feed concentration & $C_{Af}$ & $1.0$ & mol/L \\
+Feed temperature & $T_f$ & $350.0$ & K \\
+Coolant feed temperature & $T_{jf}$ & $300.0$ & K \\
+Pre-exponential factor & $k_0$ & $7.2 \times 10^{10}$ & min$^{-1}$ \\
+Activation energy parameter & $E/R$ & $8750.0$ & K \\
+Heat of reaction & $-\Delta H$ & $5.0 \times 10^4$ & cal/mol \\
+Fluid heat capacity product & $\rho C_p$ & $500.0$ & cal/(L$\cdot$K) \\
+Coolant heat capacity product & $\rho_j C_{pj}$ & $500.0$ & cal/(L$\cdot$K) \\
+Overall heat transfer coefficient & $UA$ & $5.0 \times 10^4$ & cal/(min$\cdot$K) \\
+Nominal coolant flow & $q_{j,ss}$ & $100.0$ & L/min \\
+\bottomrule
+\end{tabular}
 \end{table}
