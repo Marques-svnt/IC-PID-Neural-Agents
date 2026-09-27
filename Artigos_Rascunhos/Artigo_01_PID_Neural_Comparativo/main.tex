@@ -15,17 +15,15 @@
 \usepackage{booktabs}
 \usepackage{hyperref}
 \usepackage{siunitx}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
 \usepackage{cite}
 
 % ---- Metadados ----
-\title{A Comprehensive Benchmark on Classical PID Tuning Strategies for Highly Non-linear CSTR: Robustness, Actuator Saturation, and Multi-Objective Trade-offs}
+\title{Controllability Boundaries, Actuator Saturation, and Robustness Trade-offs in Classical PID Control of Highly Non-linear Exothermic CSTRs}
 
 \author{%
-  Gabriel Marques~\IEEEmembership{Student Member, UESC},
-  Orientador~\IEEEmembership{Professor, UESC}%
-  \thanks{Apoio: CNPq / FAPESB / PROIC-UESC. Edital 34/2026.}%
+  Gabriel Marques~\IEEEmembership{Student Member, IEEE},
+  Orientador~\IEEEmembership{Senior Member, IEEE}%
+  \thanks{Manuscript received September 2026. This research was supported in part by CNPq, FAPESB, and PROIC-UESC under Grant 34/2026.}%
 }
 
 \begin{document}
@@ -34,11 +32,11 @@
 
 % ============================================================
 \begin{abstract}
-This paper presents an exhaustive comparative benchmark of classical Proportional-Integral-Derivative (PID) tuning methodologies applied to a simulated non-isothermal Continuous Stirred Tank Reactor (CSTR) characterized by severe Arrhenius non-linearities and realistic actuator saturation dynamics. Four classical tuning paradigms—Ziegler--Nichols (ZN), Cohen--Coon (CC), Skogestad Simple Internal Model Control (SIMC), and Constrained Numerical Optimization (ITAE with maximum sensitivity $M_s \le 1.6$)—are systematically evaluated across nominal setpoint tracking, unmeasured load disturbance rejection (feed temperature surge $\Delta T_f = +5$~K and concentration surge $\Delta C_{Af} = +20\%$), heat exchanger thermal fouling ($UA$ degradation from $100\%$ down to $60\%$), sensor measurement noise, and multi-operating point transitions. The results reveal that aggressive empirical formulas (ZN and CC) induce persistent valve saturation, thermal runaway risk, and destructive limit cycles. In contrast, Skogestad SIMC and Constrained Optimal ITAE maintain superior damping ($M_p \le 12\%$, $IAE < 1.8$) and robustly reject severe load disturbances while safeguarding the actuator. Furthermore, a Pareto frontier analysis maps the fundamental trade-off between tracking accuracy ($IAE$) and control effort ($TV$), establishing a rigorous empirical baseline for forthcoming investigations into adaptive neural and agent-based supervisory control.
+Deploying fixed-gain Proportional-Integral-Derivative (PID) controllers on non-isothermal Continuous Stirred Tank Reactors (CSTRs) presents critical challenges stemming from Arrhenius kinetic non-linearities, steady-state multiplicity, and hard actuator constraints. This paper presents an exhaustive, rigorous benchmark investigating the physical controllability boundaries, anti-windup mechanics, and robustness trade-offs of classical PID tuning paradigms. Four representative strategies—Ziegler--Nichols (ZN), Cohen--Coon (CC), Skogestad Simple Internal Model Control (SIMC), and Constrained Numerical Optimization (ITAE with an $\mathcal{H}_\infty$ sensitivity constraint $M_s \le 1.6$)—are systematically evaluated on a high-fidelity three-state CSTR model subject to cooling valve amplitude saturation ($[0, 300]$~L/min) and electro-pneumatic slew-rate dynamics. Our findings reveal that empirical reaction-curve rules (ZN and CC) predictably fail on lag-dominant exothermic reactors ($\theta/\tau \approx 0.085$): excessive proportional action immediately saturates the actuator, provoking destructive limit cycles and near-runaway thermal excursions ($\Delta T > 43$~K) under load disturbances. Conversely, model-based SIMC ($\tau_c = 0.40$~min) and Constrained Optimal ITAE demonstrate superior closed-loop resilience, maintaining smooth damping ($M_p \le 12\%$, $IAE < 1.8$) and preserving stability under heat exchanger fouling down to $70\% UA$. At $60\% UA$, physical cooling limits establish a hard thermodynamic controllability boundary where linear control authority collapses. Furthermore, by sweeping the closed-loop design parameter $\tau_c$ and executing scalarized multi-objective optimization, we construct the authentic continuous Pareto frontier between tracking accuracy ($IAE$) and actuator physical wear ($TV$), delineating the quantitative boundary between high performance and actuator degradation. This benchmark establishes an authoritative empirical baseline for subsequent investigations into adaptive neural networks and autonomous multi-agent supervisory architectures.
 \end{abstract}
 
 \begin{IEEEkeywords}
-PID control, CSTR, chemical process control, Skogestad SIMC, actuator saturation, anti-windup, thermal fouling, Pareto optimization, robustness benchmark
+Chemical process control, CSTR, PID control, actuator saturation, anti-windup, Skogestad SIMC, $\mathcal{H}_\infty$ sensitivity peak, thermal fouling, controllability limits, Pareto frontier.
 \end{IEEEkeywords}
 
 % ============================================================
@@ -47,12 +45,12 @@ PID control, CSTR, chemical process control, Skogestad SIMC, actuator saturation
 \input{sections/01_introduction}
 
 % ============================================================
-\section{Mathematical Modeling of the CSTR}
+\section{Mathematical Modeling and Controllability Boundaries}
 \label{sec:model}
 \input{sections/02_modeling}
 
 % ============================================================
-\section{Classical PID Tuning Architectures}
+\section{Classical PID Tuning and Robustness Formulation}
 \label{sec:pid}
 \input{sections/03_pid_classical}
 
