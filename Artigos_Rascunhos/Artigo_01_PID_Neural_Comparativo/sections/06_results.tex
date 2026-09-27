@@ -3,7 +3,7 @@
 % ============================================================
 
 \subsection{Nominal Setpoint Tracking Benchmark}
-The four classical PID tuning strategies were first evaluated under nominal operating conditions for a $-2.0$~K step change in reactor temperature setpoint ($T_{sp} = 394.65$~K) under realistic sensor noise ($\sigma = 0.05$~K). The closed-loop state and control trajectories are illustrated in Fig.~\ref{fig:classical_benchmark}, with quantitative performance metrics summarized in Table~\ref{tab:classical_benchmark}.
+The four classical PID tuning strategies were first evaluated under nominal operating conditions for a $-2.0$~K step change in reactor temperature setpoint ($T_{sp} = 394.65$~K). To isolate the underlying deterministic non-linear dynamics, transient overshoot, and actuator energy expenditure ($TV$) without stochastic masking, this baseline benchmark is evaluated deterministically ($\sigma = 0.0$~K), whereas measurement noise and unmeasured load perturbations are examined in subsequent sections. The closed-loop state and control trajectories are illustrated in Fig.~\ref{fig:classical_benchmark}, with quantitative performance metrics summarized in Table~\ref{tab:classical_benchmark}.
 
 \begin{figure}[htbp]
     \centering
@@ -18,7 +18,7 @@ The simulation highlights critical trade-offs in classical tuning:
 \begin{itemize}
     \item \textbf{Failure of Empirical Rules (ZN and CC):} Both Ziegler--Nichols and Cohen--Coon formulas prescribed excessively aggressive gains ($K_p \approx -45$ to $-51$), driven by the small apparent dead time ($\theta = 0.093$~min, $r = 0.085$) \cite{odwyer2009handbook}. Upon step initiation, the control command instantly saturated the valve ($q_j = 300$~L/min), severing the linear feedback loop. Although anti-windup clamping halted integrator growth, the high proportional action triggered violent limit cycles with extreme overshoot ($M_p > 800\%$), proving that empirical rules formulated for unconstrained linear delay systems cannot be safely applied to lag-dominant exothermic reactors \cite{shinskey1996process, luyben2007chemical}.
     
-    \item \textbf{Superiority of Model-Based and $\mathcal{H}_\infty$-Constrained Control:} Skogestad SIMC achieved smooth, well-damped tracking ($IAE = 1.09$, $M_p = 2.1\%$) with moderate actuator effort ($TV = 20.9$~L/min) and zero valve saturation. The Constrained Optimal ITAE controller ($M_s \le 1.6$) achieved the fastest command tracking ($IAE = 0.89$, $M_p = 4.8\%$) while strictly respecting robustness margins ($M_s = 1.24$).
+    \item \textbf{Superiority of Model-Based and $\mathcal{H}_\infty$-Constrained Control:} Skogestad SIMC achieved smooth, well-damped tracking ($IAE = 1.09$, $M_p = 2.1\%$) with moderate actuator effort ($TV = 20.9$~L/min) and zero valve saturation. The Constrained Optimal ITAE controller ($M_s \le 1.6$) achieved the fastest command tracking ($IAE = 0.89$, $M_p = 4.8\%$) with moderate control effort ($TV = 44.0$~L/min) while strictly respecting robustness margins ($M_s = 1.24$).
 \end{itemize}
 
 \subsection{Unmeasured Exothermic Load Disturbance Rejection}
@@ -92,5 +92,7 @@ Finally, a wide-range setpoint tracking test ($396.65\text{ K} \rightarrow 390.0
 \end{figure}
 
 \input{tables/multistep_tracking_table}
+
+A critical physical insight from Table~\ref{tab:multistep_tracking} concerns actuator constraint handling. Physical coolant flow is bounded strictly within $[u_{\min}, u_{\max}] = [0.0, 300.0]$~L/min with a maximum slew rate of $S_{\max} = 80.0$~L/min$^2$. During the aggressive thermal transition to the strongly exothermic regime ($402.0$~K), the instantaneous coolant flow command for the Constrained Optimal ITAE controller peaks at $\max(q_j) = 183.9$~L/min. This peak utilizes $61.3\%$ of the available valve stroke, confirming that the controller maintains substantial cooling reserve ($116.1$~L/min headroom) and operates strictly below actuator saturation throughout the entire maneuver. The corresponding Total Variation metric ($TV = 1344.7$~L/min) quantifies the cumulative integrated valve displacement $\sum |\Delta q_j|$ across the full 30-minute transient trajectory rather than instantaneous volumetric throughput, reflecting smooth continuous modulation. In contrast, ZN and CC hard-saturate the valve at the $300.0$~L/min ceiling, inducing severe integrator windup and sustained limit-cycle oscillations.
 
 The multistep evaluation underscores the inherent limitations of fixed-gain linear control: while a single tuned parameter set stabilizes the system around the nominal design point, closed-loop damping and response speed vary significantly between the moderate reaction regime ($390$~K, lower conversion) and the high-temperature regime ($402$~K, where Arrhenius acceleration reduces effective stability margins). This observation provides strong justification for the adaptive neural and supervisory multi-agent architectures developed in subsequent stages of this research.
