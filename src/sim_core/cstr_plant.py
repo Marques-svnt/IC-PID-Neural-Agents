@@ -103,13 +103,21 @@ class CSTRPlant:
         k = self.params.k_0 * np.exp(-self.params.E_over_R / T_safe)
         return float(k * max(0.0, float(C_A)))
 
-    def derivatives(self, t: float, state: np.ndarray, q_j: float) -> np.ndarray:
+    def derivatives(
+        self,
+        t: float,
+        state: np.ndarray,
+        q_j: float,
+        disturbances: Optional[dict[str, float]] = None,
+    ) -> np.ndarray:
         """Computes time derivatives of the CSTR states dx/dt = f(x, u).
 
         Args:
-            t: Current time in minutes (unused in autonomous ODE, required by ODE solvers).
+            t: Current time in minutes.
             state: Array containing [C_A, T, T_j].
             q_j: Coolant volumetric flow rate in jacket [L/min].
+            disturbances: Optional dictionary overriding parameters
+                ('C_Af', 'T_f', 'T_jf', 'UA', 'q').
 
         Returns:
             1D array containing [dC_A/dt, dT/dt, dT_j/dt].
@@ -117,19 +125,26 @@ class CSTRPlant:
         C_A, T, T_j = float(state[0]), float(state[1]), float(state[2])
         p = self.params
 
+        # Allow dynamic parameter disturbance injection
+        C_Af = disturbances.get("C_Af", p.C_Af) if disturbances else p.C_Af
+        T_f = disturbances.get("T_f", p.T_f) if disturbances else p.T_f
+        T_jf = disturbances.get("T_jf", p.T_jf) if disturbances else p.T_jf
+        UA = disturbances.get("UA", p.UA) if disturbances else p.UA
+        q = disturbances.get("q", p.q) if disturbances else p.q
+
         r_A = self.reaction_rate(C_A, T)
 
         # 1. Mass Balance: dC_A/dt
-        dC_A_dt = (p.q / p.V) * (p.C_Af - C_A) - r_A
+        dC_A_dt = (q / p.V) * (C_Af - C_A) - r_A
 
         # 2. Reactor Energy Balance: dT/dt
         heat_gen = (-p.delta_H / p.rho_cp) * r_A
-        heat_removal = (p.UA / (p.V * p.rho_cp)) * (T - T_j)
-        dT_dt = (p.q / p.V) * (p.T_f - T) + heat_gen - heat_removal
+        heat_removal = (UA / (p.V * p.rho_cp)) * (T - T_j)
+        dT_dt = (q / p.V) * (T_f - T) + heat_gen - heat_removal
 
         # 3. Cooling Jacket Energy Balance: dT_j/dt
-        jacket_exchange = (p.UA / (p.V_j * p.rho_j_cp_j)) * (T - T_j)
-        dT_j_dt = (q_j / p.V_j) * (p.T_jf - T_j) + jacket_exchange
+        jacket_exchange = (UA / (p.V_j * p.rho_j_cp_j)) * (T - T_j)
+        dT_j_dt = (q_j / p.V_j) * (T_jf - T_j) + jacket_exchange
 
         return np.array([dC_A_dt, dT_dt, dT_j_dt], dtype=np.float64)
 
