@@ -3,12 +3,12 @@
 % ============================================================
 
 \subsection{Nominal Setpoint Tracking Benchmark}
-The four PID tuning strategies were first evaluated under nominal operating conditions for a $-2.0$~K step in reactor temperature setpoint ($T_{sp} = 394.65$~K) under realistic sensor noise ($\sigma = 0.10$~K). The closed-loop state and control trajectories are illustrated in Fig.~\ref{fig:classical_benchmark}, with quantitative performance metrics summarized in Table~\ref{tab:classical_benchmark}.
+The four classical PID tuning strategies were first evaluated under nominal operating conditions for a $-2.0$~K step change in reactor temperature setpoint ($T_{sp} = 394.65$~K) under realistic sensor noise ($\sigma = 0.05$~K). The closed-loop state and control trajectories are illustrated in Fig.~\ref{fig:classical_benchmark}, with quantitative performance metrics summarized in Table~\ref{tab:classical_benchmark}.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{figures/fig1_classical_benchmark.pdf}
-    \caption{Nominal closed-loop setpoint tracking comparison ($-2$~K step) showing reactor temperature $T$ and coolant flow rate $q_j$ under actuator saturation limits.}
+    \caption{Nominal closed-loop setpoint tracking comparison ($-2.0$~K step) showing reactor temperature $T$ and coolant flow rate $q_j$ under actuator physical saturation limits.}
     \label{fig:classical_benchmark}
 \end{figure}
 
@@ -16,68 +16,81 @@ The four PID tuning strategies were first evaluated under nominal operating cond
 
 The simulation highlights critical trade-offs in classical tuning:
 \begin{itemize}
-    \item \textbf{Failure of Empirical Rules (ZN and CC):} Both Ziegler--Nichols and Cohen--Coon rules produced excessively high gains ($K_p \approx -45$ to $-51$), driven by the small apparent dead time ($\theta = 0.093$~min). Upon the step change, the controllers immediately saturated the valve ($q_j = 300$~L/min), inducing violent limit cycles and unacceptable overshoot ($M_p > 800\%$).
-    \item \textbf{Superiority of Model-Based and Optimal Strategies:} Skogestad SIMC achieved smooth, well-damped tracking with $IAE = 1.77$ and $M_p = 12.1\%$, without actuator saturation. The Constrained Optimal ITAE controller ($M_s \le 1.6$) delivered the best overall tracking performance ($IAE = 1.63$, $ITAE = 4.70$, $M_s = 1.22$).
+    \item \textbf{Failure of Empirical Rules (ZN and CC):} Both Ziegler--Nichols and Cohen--Coon formulas prescribed excessively aggressive gains ($K_p \approx -45$ to $-51$), driven by the small apparent dead time ($\theta = 0.093$~min, $r = 0.085$) \cite{odwyer2009handbook}. Upon step initiation, the control command instantly saturated the valve ($q_j = 300$~L/min), severing the linear feedback loop. Although anti-windup clamping halted integrator growth, the high proportional action triggered violent limit cycles with extreme overshoot ($M_p > 800\%$), proving that empirical rules formulated for unconstrained linear delay systems cannot be safely applied to lag-dominant exothermic reactors \cite{shinskey1996process, luyben2007chemical}.
+    
+    \item \textbf{Superiority of Model-Based and $\mathcal{H}_\infty$-Constrained Control:} Skogestad SIMC achieved smooth, well-damped tracking ($IAE = 1.09$, $M_p = 2.1\%$) with moderate actuator effort ($TV = 20.9$~L/min) and zero valve saturation. The Constrained Optimal ITAE controller ($M_s \le 1.6$) achieved the fastest command tracking ($IAE = 0.89$, $M_p = 4.8\%$) while strictly respecting robustness margins ($M_s = 1.24$).
 \end{itemize}
 
-\subsection{Unmeasured Load Disturbance Rejection}
-In industrial CSTR operations, unmeasured upstream variations frequently perturb the thermal and kinetic equilibrium. To evaluate disturbance rejection, the reactor was subjected to two sequential unmeasured shocks:
+\subsection{Unmeasured Exothermic Load Disturbance Rejection}
+In commercial CSTR operations, unmeasured feed stream perturbations frequently destabilize the thermal balance \cite{seborg2010process, bequette2003process}. To stress-test regulatory disturbance rejection, two severe sequential shocks were injected:
 \begin{enumerate}
-    \item At $t = 2.0$~min: A feed temperature surge of $\Delta T_f = +5.0$~K.
-    \item At $t = 8.0$~min: An unmeasured $+20\%$ feed reactant concentration step ($\Delta C_{Af} = +0.20$~mol/L).
+    \item At $t = 2.0$~min: A feed temperature surge $\Delta T_f = +5.0$~K (representing upstream preheater failure);
+    \item At $t = 8.0$~min: An unmeasured $+20\%$ reactant feed concentration spike ($\Delta C_{Af} = +0.20$~mol/L, generating sudden exothermic heat release).
 \end{enumerate}
 
-The closed-loop dynamic responses are presented in Fig.~\ref{fig:disturbance_rejection}, and performance metrics are compiled in Table~\ref{tab:load_disturbance}.
+Closed-loop regulatory trajectories are depicted in Fig.~\ref{fig:disturbance_rejection}, with performance metrics compiled in Table~\ref{tab:load_disturbance}.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{figures/fig2_disturbance_rejection.pdf}
-    \caption{Regulatory response under unmeasured load disturbances: $+5$~K feed temperature surge at $t = 2$~min, followed by $+20\%$ feed concentration spike at $t = 8$~min.}
+    \caption{Regulatory performance under unmeasured load disturbances: $+5.0$~K feed temperature surge at $t = 2.0$~min, followed by $+20\%$ feed concentration spike at $t = 8.0$~min.}
     \label{fig:disturbance_rejection}
 \end{figure}
 
 \input{tables/disturbance_rejection_table}
 
-Under the severe exothermic heat release triggered by the concentration and temperature surges, Ziegler--Nichols and Cohen--Coon permitted extreme temperature spikes ($\Delta T_{\text{peak}} = +56.5$~K and $+43.3$~K, respectively), pushing the reactor toward thermal runaway before recovering into limit cycles. Conversely, both SIMC and Optimal ITAE contained the peak deviation to just $7.3$~K, returning the system swiftly to regulatory setpoint.
+Under the severe exothermic heat release triggered by the combined disturbances, ZN and CC permitted catastrophic thermal excursions ($\Delta T_{\text{peak}} = +56.5$~K and $+43.3$~K, respectively), pushing the reactor into near-runaway conditions before recovering into persistent limit cycles \cite{uppal1974dynamic, aris1958analysis}. In contrast, both Skogestad SIMC and Constrained Optimal ITAE contained peak temperature deviations to under $7.4$~K, smoothly opening the cooling valve without chatter and rapidly restoring the reactor to setpoint.
 
-\subsection{Thermal Fouling and Parameter Uncertainty}
-Jacket heat exchanger surfaces naturally suffer from mineral scaling and polymer fouling over operational lifecycles, causing gradual reduction of the overall heat transfer coefficient $UA$. To quantify robustness against thermal degradation, $UA$ was degraded systematically from $100\%$ down to $60\%$ of its nominal value. The results are summarized in Table~\ref{tab:fouling_sensitivity}, and the trajectory comparison between clean ($100\%$) and severely fouled ($70\%$) conditions is shown in Fig.~\ref{fig:fouling_robustness}.
+\subsection{Thermal Fouling and Physical Controllability Limits}
+Heat exchanger surfaces inevitably suffer from scaling and polymer fouling, leading to progressive degradation of the overall heat transfer coefficient $UA$ \cite{luyben2007chemical}. To evaluate parametric robustness, $UA$ was degraded systematically from $100\%$ down to $60\%$ of nominal. Performance metrics across fouling levels are reported in Table~\ref{tab:fouling_sensitivity}, and the trajectory comparison between clean ($100\% UA$) and fouled ($70\% UA$) jackets is displayed in Fig.~\ref{fig:fouling_robustness}.
 
 \begin{figure*}[t]
     \centering
-    \includegraphics[width=0.92\textwidth]{figures/fig3_fouling_robustness.pdf}
-    \caption{Effect of heat transfer degradation on closed-loop stability: comparison between clean jacket ($100\% UA$) and fouled jacket ($70\% UA$).}
+    \includegraphics[width=0.95\textwidth]{figures/fig3_fouling_robustness.pdf}
+    \caption{Effect of heat transfer degradation on closed-loop stability: comparison between clean jacket ($100\% UA$) and fouled jacket ($70\% UA$) under classical PID strategies.}
     \label{fig:fouling_robustness}
 \end{figure*}
 
 \input{tables/fouling_sensitivity_table}
 
-While ZN and CC exhibited severe instability across all fouling levels, SIMC and Constrained Optimal ITAE maintained stable operation and zero steady-state offset down to $70\% UA$. At $60\% UA$, the heat transfer capability is physically insufficient to reject reaction heat without continuous valve saturation, marking the absolute controllability boundary of the process.
+The findings confirm the analytical controllability boundaries derived in Section~\ref{subsec:thermal_controllability}:
+\begin{itemize}
+    \item For $UA \ge 70\%$, both Skogestad SIMC and Constrained Optimal ITAE preserve closed-loop stability and zero steady-state offset by automatically increasing the baseline coolant flow rate;
+    \item At $60\% UA$, the maximum cooling capacity $Q_{r, \max}(T)$ (Eq.~\eqref{eq:max_cooling_limit}) drops below the peak Arrhenius heat generation rate $Q_g(T)$. Even with the cooling valve fully saturated at $q_j = u_{\max} = 300$~L/min, heat removal is physically insufficient, precipitating irreversible thermal runaway. This marks the hard thermodynamic controllability boundary of the physical system.
+\end{itemize}
 
-\subsection{Sensor Noise Sensitivity and Pareto Trade-off ($IAE \times TV$)}
-To quantify actuator wear under measurement noise, a Monte Carlo sensitivity analysis ($5$ independent realizations per noise level) was conducted across noise standard deviations $\sigma \in [0.0, 1.0]$~K. Table~\ref{tab:noise_sensitivity} reports the tracking error ($IAE$) and actuator effort ($TV$), while Fig.~\ref{fig:pareto_iae_tv} maps the resulting Pareto trade-off frontier.
+\subsection{Authentic Continuous Pareto Frontier and Robustness Limits}
+\label{subsec:pareto_results}
+To resolve the fundamental trade-off between setpoint tracking accuracy and actuator physical wear, a continuous parameter sweep of the Skogestad SIMC closed-loop time constant $\tau_c \in [0.015, 2.50]$~min (45 logarithmically spaced points) and a scalarized multi-objective optimization across trade-off weights $\lambda \in [0.05, 0.95]$ were conducted. The resulting authentic Pareto frontier in the $(TV, IAE)$ plane and the sensitivity peak response are illustrated in Fig.~\ref{fig:pareto_iae_tv}, with representative quantitative points tabulated in Table~\ref{tab:pareto_tradeoff}.
 
-\begin{figure}[htbp]
+\begin{figure*}[t]
     \centering
-    \includegraphics[width=\linewidth]{figures/fig4_pareto_iae_tv.pdf}
-    \caption{Pareto frontier illustrating the multi-objective trade-off between tracking error ($IAE$) and actuator wear ($TV$) across increasing measurement noise levels ($\sigma = 0.0$ to $1.0$~K).}
+    \includegraphics[width=0.98\textwidth]{figures/fig4_pareto_iae_tv.pdf}
+    \caption{Authentic continuous Pareto trade-off and sensitivity boundaries: (a) Continuous Pareto frontier in the $(TV, IAE)$ plane mapping the SIMC $\tau_c$-sweep locus, scalarized multi-objective optimal front ($\lambda$-opt), and discrete classical benchmarks, color-coded by maximum sensitivity $M_s$; (b) Variation of maximum sensitivity peak $M_s = \|S\|_\infty$ and tracking error $IAE$ as a function of the closed-loop tuning parameter $\tau_c$ on a logarithmic scale.}
     \label{fig:pareto_iae_tv}
-\end{figure}
+\end{figure*}
 
-\input{tables/noise_chattering_table}
+\input{tables/pareto_tradeoff_table}
 
-In the noise-free baseline ($\sigma = 0.0$~K), SIMC and Optimal ITAE achieve negligible control effort ($TV = 22.5$~L/min and $46.6$~L/min). As sensor noise intensifies, the derivative filter attenuates high-frequency noise, but $TV$ rises to $\approx 770$~L/min. Controllers with excessive proportional gains (ZN, CC) suffer from severe chattering even under mild noise, causing premature valve packing and seal wear in industrial environments.
+The continuous sweep reveals fundamental design insights:
+\begin{itemize}
+    \item \textbf{Non-linear Pareto Front in $(TV, IAE)$:} As depicted in Fig.~\ref{fig:pareto_iae_tv}(a), the trade-off curve exhibits a sharp "knee" around $TV \approx 20\text{--}35$~L/min and $IAE \approx 1.05\text{--}1.10$~K$\cdot$min, corresponding to $\tau_c \in [0.25, 0.40]$~min. Selecting $\tau_c < 0.10$~min produces diminishing returns in tracking speed ($\Delta IAE < 0.15$~K$\cdot$min) while drastically inflating actuator wear ($TV > 60$~L/min) and overshoot ($M_p > 25\%$) \cite{grimholt2018optimal, alcantara2013simple}.
+    
+    \item \textbf{Robustness Fragility and Sensitivity Peak $M_s$:} Fig.~\ref{fig:pareto_iae_tv}(b) delineates the robustness boundary. When $\tau_c$ is reduced below $0.10$~min, the peak sensitivity $M_s$ rises sharply, exceeding the robust target $M_s = 1.6$ and approaching the stability limit $M_s = 2.0$. This frequency-domain erosion directly correlates with the onset of time-domain actuator saturation and overshoot \cite{garpinger2014performance, padula2012optimal}.
+    
+    \item \textbf{Mapping Classical Rules on the Design Space:} The discrete classical benchmarks occupy vastly disparate regions of the Pareto space. ZN and CC fall deep into the unstable/saturated quadrant ($TV \approx 480$~L/min, $IAE > 100$~K$\cdot$min), whereas Skogestad SIMC ($\tau_c = 0.39$~min) and Constrained Optimal ITAE align closely with the theoretical multi-objective optimal front ($\lambda$-opt), delivering an ideal compromise between regulation quality and valve longevity \cite{reynoso2021multiobjective}.
+\end{itemize}
 
-\subsection{Multi-Operating Point Tracking across Kinetic Regimes}
-Finally, a wide-range multistep setpoint tracking test ($396.65\text{ K} \rightarrow 390.0\text{ K} \rightarrow 402.0\text{ K} \rightarrow 396.65\text{ K}$) was conducted to evaluate non-linear gain variation across different reaction regimes. As plotted in Fig.~\ref{fig:multistep_tracking} and quantified in Table~\ref{tab:multistep_tracking}, the non-linear process gain and time constant vary substantially between the lower conversion regime ($390$~K) and the strongly exothermic runaway-sensitive regime ($402$~K).
+\subsection{Wide-Range Multi-Operating Point Non-linear Tracking}
+Finally, a wide-range setpoint tracking test ($396.65\text{ K} \rightarrow 390.0\text{ K} \rightarrow 402.0\text{ K} \rightarrow 396.65\text{ K}$) was conducted to evaluate non-linear gain variation across disparate kinetic regimes. Trajectories are plotted in Fig.~\ref{fig:multistep_tracking}, and performance metrics are summarized in Table~\ref{tab:multistep_tracking}.
 
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=\linewidth]{figures/fig5_multistep_tracking.pdf}
-    \caption{Non-linear wide-range setpoint tracking across moderate ($390$~K), nominal ($396.65$~K), and strongly exothermic ($402$~K) operating points.}
+    \caption{Non-linear wide-range setpoint tracking across moderate ($390.0$~K), nominal ($396.65$~K), and strongly exothermic ($402.0$~K) operating points.}
     \label{fig:multistep_tracking}
 \end{figure}
 
 \input{tables/multistep_tracking_table}
 
-The multistep experiment clearly demonstrates the limitations of fixed-gain linear PID controllers: while a single tuned parameter set can stabilize the system at the design point, performance degrades when transitioning across operating regimes. This result provides clear academic justification for the adaptive neural network and agent-based gain scheduling architectures to be investigated in subsequent works.
+The multistep evaluation underscores the inherent limitations of fixed-gain linear control: while a single tuned parameter set stabilizes the system around the nominal design point, closed-loop damping and response speed vary significantly between the moderate reaction regime ($390$~K, lower conversion) and the high-temperature regime ($402$~K, where Arrhenius acceleration reduces effective stability margins). This observation provides strong justification for the adaptive neural and supervisory multi-agent architectures developed in subsequent stages of this research.
