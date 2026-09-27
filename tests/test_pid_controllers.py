@@ -136,3 +136,33 @@ class TestClosedLoopIntegration:
         assert abs(final_pv - target_T) < 0.2  # Settled within 0.2 K of setpoint
         assert result.metrics.iae > 0.0
         assert result.metrics.tv > 0.0
+
+    def test_load_disturbance_rejection(
+        self, plant: CSTRPlant, nominal_steady_state: tuple[CSTRState, float]
+    ) -> None:
+        """Controller rejects feed temperature load disturbance (+5 K step at t=2 min)."""
+        ss, q_j_ss = nominal_steady_state
+        gains = PIDGains(kp=-5.0, ti=1.5, td=0.2)
+        limits = ActuatorLimits(u_min=0.0, u_max=300.0, max_slew_rate=80.0)
+        pid = PIDController(
+            gains=gains,
+            actuator_limits=limits,
+            anti_windup=AntiWindupMethod.CLAMPING,
+            u_bias=q_j_ss,
+        )
+
+        sim = ClosedLoopSimulator()
+        result = sim.run(
+            plant=plant,
+            controller=pid,
+            initial_state=ss,
+            t_span=(0.0, 12.0),
+            dt=0.02,
+            setpoint_func=lambda t: ss.T,  # Constant regulatory setpoint
+            disturbance_func=lambda t: {"T_f": plant.params.T_f + 5.0} if t >= 2.0 else {},
+        )
+
+        # Before disturbance, error is 0. After disturbance at t=2.0, controller rejects it
+        final_pv = result.t_pv[-1]
+        assert abs(final_pv - ss.T) < 0.15  # Returns to within 0.15 K of nominal setpoint
+        assert result.metrics.iae > 0.0
