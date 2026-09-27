@@ -1,0 +1,15 @@
+\begin{table}[htbp]
+\centering
+\caption{Comparative performance benchmark of classical PID tuning methods on non-linear CSTR.}
+\label{tab:classical_benchmark}
+\begin{tabular}{lccccccccc}
+\toprule
+Method & Kp & Ti (min) & Td (min) & IAE & ITAE & TV (L/min) & Mp (%) & ts (min) & Ms \\
+\midrule
+Ziegler-Nichols & -44.56 & 0.19 & 0.047 & 95.91 & 627.82 & 551.7 & 841.4 & N/A & 1.37 \\
+Cohen-Coon & -50.86 & 0.22 & 0.033 & 94.14 & 627.03 & 531.1 & 840.5 & N/A & 1.50 \\
+Skogestad SIMC & -7.03 & 0.64 & 0.031 & 1.77 & 4.81 & 595.7 & 12.1 & N/A & 1.09 \\
+Optimal ITAE ($M_s \leq 1.6$) & -14.92 & 1.04 & 0.008 & 1.63 & 4.70 & 623.2 & 13.3 & N/A & 1.22 \\
+\bottomrule
+\end{tabular}
+\end{table}
