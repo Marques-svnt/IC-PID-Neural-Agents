@@ -32,6 +32,12 @@ from src.classical_control.tuning_optimization import (
     OptimizationCriterion,
     tune_by_optimization,
 )
+from src.evaluation.plot_styles import (
+    IEEE_LINESTYLES,
+    IEEE_PALETTE,
+    get_figure_dimensions,
+    setup_ieee_style,
+)
 from src.sim_core.actuators import ActuatorLimits
 from src.sim_core.cstr_plant import CSTRPlant, CSTRState
 from src.sim_core.integrator import NumericalIntegrator
@@ -39,17 +45,7 @@ from src.sim_core.integrator import NumericalIntegrator
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("exp_02_robustness")
 
-# Matplotlib formatting setup
-AVAILABLE_STYLES = plt.style.available
-STYLE = "seaborn-v0_8-whitegrid" if "seaborn-v0_8-whitegrid" in AVAILABLE_STYLES else "default"
-plt.style.use(STYLE)
-
-CONTROLLER_COLORS = {
-    "Ziegler-Nichols": "#1f77b4",
-    "Cohen-Coon": "#ff7f0e",
-    "Skogestad SIMC": "#2ca02c",
-    "Optimal ITAE ($M_s \\leq 1.6$)": "#d62728",
-}
+CONTROLLER_COLORS = IEEE_PALETTE
 
 
 def setup_controllers(
@@ -132,13 +128,15 @@ def export_latex_table(
 \\centering
 \\caption{{{caption}}}
 \\label{{{label}}}
+\\resizebox{{\\columnwidth}}{{!}}{{%
 \\begin{{tabular}}{{{col_align}}}
 \\toprule
 {cols} \\\\
 \\midrule
 {rows_str}
 \\bottomrule
-\\end{{tabular}}
+\\end{{tabular}}%
+}}
 \\end{{table}}
 """
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -228,38 +226,55 @@ def run_load_disturbance_campaign(
         label="tab:load_disturbance",
     )
 
-    # Plot trajectories
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8.5, 6.5), sharex=True, dpi=300)
+    # Plot trajectories with IEEE Single-Column Standard
+    setup_ieee_style(single_column=True)
+    fig_w, fig_h = get_figure_dimensions(columns=1, height_override=3.6)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(fig_w, fig_h), sharex=True, dpi=300)
 
     # Reference nominal line
     sample_res = next(iter(sim_results.values()))
-    ax1.plot(sample_res.t, sample_res.setpoint, "k--", label="Target $T_{sp}$", linewidth=1.5)
+    ax1.plot(
+        sample_res.t,
+        sample_res.setpoint,
+        color=IEEE_PALETTE["Setpoint"],
+        linestyle=IEEE_LINESTYLES["Setpoint"],
+        label="Target $T_{sp}$",
+        linewidth=1.2,
+    )
 
     # Annotate disturbance injection points
-    ax1.axvline(2.0, color="gray", linestyle="--", alpha=0.7)
-    ax1.text(2.1, 401.0, "$\\Delta T_f = +5$ K", fontsize=9, color="gray", fontweight="bold")
-    ax1.axvline(8.0, color="gray", linestyle="--", alpha=0.7)
-    ax1.text(8.1, 401.0, "$\\Delta C_{Af} = +20\\%$", fontsize=9, color="gray", fontweight="bold")
+    ax1.axvline(2.0, color="gray", linestyle="--", linewidth=0.8, alpha=0.7)
+    ax1.text(2.1, 401.0, "$\\Delta T_f = +5$ K", fontsize=7.5, color="#555555")
+    ax1.axvline(8.0, color="gray", linestyle="--", linewidth=0.8, alpha=0.7)
+    ax1.text(8.1, 401.0, "$\\Delta C_{Af} = +20\\%$", fontsize=7.5, color="#555555")
 
     for name, res in sim_results.items():
-        color = CONTROLLER_COLORS[name]
-        ax1.plot(res.t, res.t_pv, label=name, color=color, linewidth=1.8)
-        ax2.plot(res.t, res.u_applied, label=name, color=color, linewidth=1.8)
+        color = IEEE_PALETTE.get(name, "#333333")
+        linestyle = IEEE_LINESTYLES.get(name, "-")
+        ax1.plot(res.t, res.t_pv, label=name, color=color, linestyle=linestyle, linewidth=1.2)
+        ax2.plot(res.t, res.u_applied, label=name, color=color, linestyle=linestyle, linewidth=1.2)
 
-    ax1.set_ylabel("Reactor Temperature $T$ (K)", fontsize=11)
-    ax1.set_title(
-        "Load Disturbance Rejection: $+5$ K Feed Temp Surge & $+20\\%$ Feed Conc Surge",
-        fontsize=12,
-        fontweight="bold",
-    )
-    ax1.legend(loc="upper right", frameon=True, fontsize=9)
+    ax1.set_ylabel("Reactor Temp. $T$ (K)", fontsize=8.5)
+    ax1.set_title("Load Disturbance Rejection ($+5$ K & $+20\\% C_{Af}$)", fontsize=9.0)
+    ax1.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax1.grid(True, linestyle=":", alpha=0.6)
 
-    ax2.axhline(limits.u_max, color="red", linestyle=":", label="Valve Limits ($u_{max}, u_{min}$)")
-    ax2.axhline(limits.u_min, color="red", linestyle=":")
-    ax2.set_ylabel("Coolant Flow $q_j$ (L/min)", fontsize=11)
-    ax2.set_xlabel("Time $t$ (min)", fontsize=11)
-    ax2.legend(loc="upper right", frameon=True, fontsize=9)
+    ax2.axhline(
+        limits.u_max,
+        color=IEEE_PALETTE["Constraint"],
+        linestyle=IEEE_LINESTYLES["Constraint"],
+        label="Limits ($u_{\\min}, u_{\\max}$)",
+        linewidth=1.0,
+    )
+    ax2.axhline(
+        limits.u_min,
+        color=IEEE_PALETTE["Constraint"],
+        linestyle=IEEE_LINESTYLES["Constraint"],
+        linewidth=1.0,
+    )
+    ax2.set_ylabel("Coolant Flow $q_j$ (L/min)", fontsize=8.5)
+    ax2.set_xlabel("Time $t$ (min)", fontsize=8.5)
+    ax2.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax2.grid(True, linestyle=":", alpha=0.6)
 
     plt.tight_layout()
@@ -345,45 +360,81 @@ def run_fouling_campaign(
         label="tab:fouling_sensitivity",
     )
 
-    # Plot comparison: Nominal (100% UA) vs Severe Fouling (70% UA)
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(12, 7.5), sharex=True, dpi=300)
+    # Plot comparison: Nominal (100% UA) vs Severe Fouling (70% UA) - IEEE Double-Column Standard
+    setup_ieee_style(single_column=False)
+    fig_w, fig_h = get_figure_dimensions(columns=2, height_override=4.2)
+    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(fig_w, fig_h), sharex=True, dpi=300)
 
     sample_res = next(iter(plot_data["1.0"].values()))
 
     # Panel (a): T at 100% UA
-    ax1.plot(sample_res.t, sample_res.setpoint, "k--", label="Target SP", linewidth=1.5)
+    ax1.plot(
+        sample_res.t,
+        sample_res.setpoint,
+        color=IEEE_PALETTE["Setpoint"],
+        linestyle=IEEE_LINESTYLES["Setpoint"],
+        label="Target $T_{sp}$",
+        linewidth=1.2,
+    )
     for name, res in plot_data["1.0"].items():
-        ax1.plot(res.t, res.t_pv, label=name, color=CONTROLLER_COLORS[name], linewidth=1.8)
-    ax1.set_title("(a) Clean Jacket ($100\\% UA$): Temperature $T$", fontsize=11, fontweight="bold")
-    ax1.set_ylabel("Temperature $T$ (K)", fontsize=10)
-    ax1.legend(loc="lower right", frameon=True, fontsize=8)
+        color = IEEE_PALETTE.get(name, "#333333")
+        linestyle = IEEE_LINESTYLES.get(name, "-")
+        ax1.plot(res.t, res.t_pv, label=name, color=color, linestyle=linestyle, linewidth=1.2)
+    ax1.set_title("(a) Clean Jacket ($100\\% UA$): Temperature $T$", fontsize=9.0)
+    ax1.set_ylabel("Reactor Temp. $T$ (K)", fontsize=8.5)
+    ax1.legend(loc="lower right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax1.grid(True, linestyle=":", alpha=0.6)
 
     # Panel (b): T at 70% UA
-    ax2.plot(sample_res.t, sample_res.setpoint, "k--", label="Target SP", linewidth=1.5)
+    ax2.plot(
+        sample_res.t,
+        sample_res.setpoint,
+        color=IEEE_PALETTE["Setpoint"],
+        linestyle=IEEE_LINESTYLES["Setpoint"],
+        label="Target $T_{sp}$",
+        linewidth=1.2,
+    )
     for name, res in plot_data["0.7"].items():
-        ax2.plot(res.t, res.t_pv, label=name, color=CONTROLLER_COLORS[name], linewidth=1.8)
-    ax2.set_title("(b) Fouled Jacket ($70\\% UA$): Temperature $T$", fontsize=11, fontweight="bold")
-    ax2.legend(loc="lower right", frameon=True, fontsize=8)
+        color = IEEE_PALETTE.get(name, "#333333")
+        linestyle = IEEE_LINESTYLES.get(name, "-")
+        ax2.plot(res.t, res.t_pv, label=name, color=color, linestyle=linestyle, linewidth=1.2)
+    ax2.set_title("(b) Fouled Jacket ($70\\% UA$): Temperature $T$", fontsize=9.0)
+    ax2.legend(loc="lower right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax2.grid(True, linestyle=":", alpha=0.6)
 
     # Panel (c): Coolant Flow at 100% UA
     for name, res in plot_data["1.0"].items():
-        ax3.plot(res.t, res.u_applied, label=name, color=CONTROLLER_COLORS[name], linewidth=1.8)
-    ax3.axhline(limits.u_max, color="red", linestyle=":", label="Valve Limits")
-    ax3.set_title("(c) Clean Jacket ($100\\% UA$): Coolant $q_j$", fontsize=11, fontweight="bold")
-    ax3.set_ylabel("Coolant Flow $q_j$ (L/min)", fontsize=10)
-    ax3.set_xlabel("Time $t$ (min)", fontsize=10)
-    ax3.legend(loc="upper right", frameon=True, fontsize=8)
+        color = IEEE_PALETTE.get(name, "#333333")
+        linestyle = IEEE_LINESTYLES.get(name, "-")
+        ax3.plot(res.t, res.u_applied, label=name, color=color, linestyle=linestyle, linewidth=1.2)
+    ax3.axhline(
+        limits.u_max,
+        color=IEEE_PALETTE["Constraint"],
+        linestyle=IEEE_LINESTYLES["Constraint"],
+        label="Limits ($u_{\\min}, u_{\\max}$)",
+        linewidth=1.0,
+    )
+    ax3.set_title("(c) Clean Jacket ($100\\% UA$): Coolant $q_j$", fontsize=9.0)
+    ax3.set_ylabel("Coolant Flow $q_j$ (L/min)", fontsize=8.5)
+    ax3.set_xlabel("Time $t$ (min)", fontsize=8.5)
+    ax3.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax3.grid(True, linestyle=":", alpha=0.6)
 
     # Panel (d): Coolant Flow at 70% UA
     for name, res in plot_data["0.7"].items():
-        ax4.plot(res.t, res.u_applied, label=name, color=CONTROLLER_COLORS[name], linewidth=1.8)
-    ax4.axhline(limits.u_max, color="red", linestyle=":", label="Valve Limits")
-    ax4.set_title("(d) Fouled Jacket ($70\\% UA$): Coolant $q_j$", fontsize=11, fontweight="bold")
-    ax4.set_xlabel("Time $t$ (min)", fontsize=10)
-    ax4.legend(loc="upper right", frameon=True, fontsize=8)
+        color = IEEE_PALETTE.get(name, "#333333")
+        linestyle = IEEE_LINESTYLES.get(name, "-")
+        ax4.plot(res.t, res.u_applied, label=name, color=color, linestyle=linestyle, linewidth=1.2)
+    ax4.axhline(
+        limits.u_max,
+        color=IEEE_PALETTE["Constraint"],
+        linestyle=IEEE_LINESTYLES["Constraint"],
+        label="Limits ($u_{\\min}, u_{\\max}$)",
+        linewidth=1.0,
+    )
+    ax4.set_title("(d) Fouled Jacket ($70\\% UA$): Coolant $q_j$", fontsize=9.0)
+    ax4.set_xlabel("Time $t$ (min)", fontsize=8.5)
+    ax4.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax4.grid(True, linestyle=":", alpha=0.6)
 
     plt.tight_layout()
@@ -516,12 +567,12 @@ def run_noise_and_pareto_campaign(
     plt.grid(True, linestyle=":", alpha=0.6)
     plt.tight_layout()
 
-    fig_png = figures_dir / "fig4_pareto_iae_tv.png"
-    fig_pdf = figures_dir / "fig4_pareto_iae_tv.pdf"
+    fig_png = figures_dir / "fig_noise_sensitivity.png"
+    fig_pdf = figures_dir / "fig_noise_sensitivity.pdf"
     plt.savefig(fig_png, dpi=300)
     plt.savefig(fig_pdf)
     plt.close()
-    logger.info("Saved fig4: %s and %s", fig_png, fig_pdf)
+    logger.info("Saved noise sensitivity figures: %s and %s", fig_png, fig_pdf)
 
 
 def run_multistep_campaign(
@@ -603,32 +654,48 @@ def run_multistep_campaign(
         label="tab:multistep_tracking",
     )
 
-    # Plot multi-step trajectories
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(9.0, 7.0), sharex=True, dpi=300)
+    # Plot multi-step trajectories with IEEE Single-Column Standard
+    setup_ieee_style(single_column=True)
+    fig_w, fig_h = get_figure_dimensions(columns=1, height_override=3.6)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(fig_w, fig_h), sharex=True, dpi=300)
 
     sample_res = next(iter(sim_results.values()))
-    ax1.plot(sample_res.t, sample_res.setpoint, "k--", label="Target $T_{sp}$", linewidth=1.5)
+    ax1.plot(
+        sample_res.t,
+        sample_res.setpoint,
+        color=IEEE_PALETTE["Setpoint"],
+        linestyle=IEEE_LINESTYLES["Setpoint"],
+        label="Target $T_{sp}$",
+        linewidth=1.2,
+    )
 
     for name, res in sim_results.items():
-        color = CONTROLLER_COLORS[name]
-        ax1.plot(res.t, res.t_pv, label=name, color=color, linewidth=1.8)
-        ax2.plot(res.t, res.u_applied, label=name, color=color, linewidth=1.8)
+        color = IEEE_PALETTE.get(name, "#333333")
+        linestyle = IEEE_LINESTYLES.get(name, "-")
+        ax1.plot(res.t, res.t_pv, label=name, color=color, linestyle=linestyle, linewidth=1.2)
+        ax2.plot(res.t, res.u_applied, label=name, color=color, linestyle=linestyle, linewidth=1.2)
 
-    ax1.set_ylabel("Reactor Temperature $T$ (K)", fontsize=11)
-    ax1.set_title(
-        "Non-linear Wide-Range Tracking: $396.65\\text{ K} \\rightarrow 390\\text{ K} "
-        "\\rightarrow 402\\text{ K} \\rightarrow 396.65\\text{ K}$",
-        fontsize=12,
-        fontweight="bold",
-    )
-    ax1.legend(loc="lower right", frameon=True, fontsize=9)
+    ax1.set_ylabel("Reactor Temp. $T$ (K)", fontsize=8.5)
+    ax1.set_title("Wide-Range Multi-Operating Point Tracking", fontsize=9.0)
+    ax1.legend(loc="lower right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax1.grid(True, linestyle=":", alpha=0.6)
 
-    ax2.axhline(limits.u_max, color="red", linestyle=":", label="Valve Limits ($u_{max}, u_{min}$)")
-    ax2.axhline(limits.u_min, color="red", linestyle=":")
-    ax2.set_ylabel("Coolant Flow $q_j$ (L/min)", fontsize=11)
-    ax2.set_xlabel("Time $t$ (min)", fontsize=11)
-    ax2.legend(loc="upper right", frameon=True, fontsize=9)
+    ax2.axhline(
+        limits.u_max,
+        color=IEEE_PALETTE["Constraint"],
+        linestyle=IEEE_LINESTYLES["Constraint"],
+        label="Limits ($u_{\\min}, u_{\\max}$)",
+        linewidth=1.0,
+    )
+    ax2.axhline(
+        limits.u_min,
+        color=IEEE_PALETTE["Constraint"],
+        linestyle=IEEE_LINESTYLES["Constraint"],
+        linewidth=1.0,
+    )
+    ax2.set_ylabel("Coolant Flow $q_j$ (L/min)", fontsize=8.5)
+    ax2.set_xlabel("Time $t$ (min)", fontsize=8.5)
+    ax2.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax2.grid(True, linestyle=":", alpha=0.6)
 
     plt.tight_layout()
