@@ -56,6 +56,29 @@ class TestCSTRPlantPhysics:
         # Check system is Hurwitz (all real parts negative) around nominal point
         assert np.all(np.real(eigvals) < 0.0)
 
+    def test_disturbances_affect_derivatives(self, plant: CSTRPlant) -> None:
+        """Overriding feed temperature or concentration must alter state derivatives."""
+        nominal_state = np.array([0.08, 345.0, 340.0])
+        q_j = 100.0
+
+        deriv_nom = plant.derivatives(0.0, nominal_state, q_j)
+        deriv_hot = plant.derivatives(
+            0.0, nominal_state, q_j, disturbances={"T_f": plant.params.T_f + 10.0}
+        )
+        deriv_conc = plant.derivatives(
+            0.0, nominal_state, q_j, disturbances={"C_Af": plant.params.C_Af * 1.5}
+        )
+        deriv_foul = plant.derivatives(
+            0.0, nominal_state, q_j, disturbances={"UA": plant.params.UA * 0.7}
+        )
+
+        # Hotter feed must increase dT/dt (index 1)
+        assert deriv_hot[1] > deriv_nom[1]
+        # Higher feed concentration must increase dC_A/dt (index 0)
+        assert deriv_conc[0] > deriv_nom[0]
+        # Fouling (lower UA) decreases heat removal -> higher net dT/dt
+        assert deriv_foul[1] > deriv_nom[1]
+
 
 class TestNumericalIntegrator:
     """Validates numerical integration accuracy and trajectory generation."""
@@ -94,6 +117,37 @@ class TestNumericalIntegrator:
         initial_T = res.states[0, 1]
         final_T = res.states[-1, 1]
         assert final_T < initial_T  # More cooling decreases reactor temperature
+
+    def test_open_loop_with_disturbance_function(
+        self,
+        plant: CSTRPlant,
+        integrator: NumericalIntegrator,
+        nominal_steady_state: tuple[CSTRState, float],
+    ) -> None:
+        """Simulation with feed temperature disturbance heats up reactor compared to nominal."""
+        ss, q_j_ss = nominal_steady_state
+
+        res_nom = integrator.simulate_open_loop(
+            plant=plant,
+            initial_state=ss,
+            t_span=(0.0, 3.0),
+            dt=0.05,
+            u_func=lambda t: q_j_ss,
+        )
+
+        res_dist = integrator.simulate_open_loop(
+            plant=plant,
+            initial_state=ss,
+            t_span=(0.0, 3.0),
+            dt=0.05,
+            u_func=lambda t: q_j_ss,
+            disturbance_func=lambda t: {
+                "T_f": plant.params.T_f + 5.0 if t >= 1.0 else plant.params.T_f
+            },
+        )
+
+        # Disturbed trajectory should end with a higher temperature
+        assert res_dist.states[-1, 1] > res_nom.states[-1, 1]
 
 
 class TestValveActuator:
