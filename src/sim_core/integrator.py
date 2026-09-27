@@ -52,6 +52,7 @@ class NumericalIntegrator:
         q_j: float,
         t_current: float,
         dt: float,
+        disturbances: Optional[dict[str, float]] = None,
     ) -> CSTRState:
         """Integrates plant dynamics across a single sampling interval dt.
 
@@ -61,6 +62,7 @@ class NumericalIntegrator:
             q_j: Constant coolant flow applied over interval [t_current, t_current + dt].
             t_current: Start time in minutes.
             dt: Sampling period in minutes.
+            disturbances: Optional dictionary overriding plant parameters.
 
         Returns:
             Updated CSTRState at t_current + dt.
@@ -72,7 +74,7 @@ class NumericalIntegrator:
         t_span = (t_current, t_current + dt)
 
         sol = solve_ivp(
-            fun=lambda t, y: plant.derivatives(t, y, q_j),
+            fun=lambda t, y: plant.derivatives(t, y, q_j, disturbances=disturbances),
             t_span=t_span,
             y0=y0,
             method=self.method,
@@ -97,6 +99,7 @@ class NumericalIntegrator:
         t_span: tuple[float, float],
         dt: float,
         u_func: Callable[[float], float],
+        disturbance_func: Optional[Callable[[float], dict[str, float]]] = None,
         noise_std: float = 0.0,
         seed: Optional[int] = None,
     ) -> SimulationResult:
@@ -108,6 +111,7 @@ class NumericalIntegrator:
             t_span: (t_start, t_end) in minutes.
             dt: Sampling interval in minutes.
             u_func: Function mapping t -> q_j(t).
+            disturbance_func: Optional callable mapping t -> disturbance dict.
             noise_std: Standard deviation of additive Gaussian noise on temperature [K].
             seed: Optional random seed for noise reproducibility.
 
@@ -133,7 +137,8 @@ class NumericalIntegrator:
             q_j = u_func(t_now)
             u_vals[i] = q_j
 
-            current_state = self.step(plant, current_state, q_j, t_now, dt)
+            dist = disturbance_func(t_now) if disturbance_func else None
+            current_state = self.step(plant, current_state, q_j, t_now, dt, disturbances=dist)
             states[i + 1] = current_state.to_array()
 
             noise_i = rng.normal(0.0, noise_std) if noise_std > 0 else 0.0
