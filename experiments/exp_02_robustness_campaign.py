@@ -263,7 +263,7 @@ def run_load_disturbance_campaign(
         limits.u_max,
         color=IEEE_PALETTE["Constraint"],
         linestyle=IEEE_LINESTYLES["Constraint"],
-        label="Limits ($u_{\\min}, u_{\\max}$)",
+        label=r"Limits ($u_{\mathrm{min}}, u_{\mathrm{max}}$)",
         linewidth=1.0,
     )
     ax2.axhline(
@@ -272,7 +272,7 @@ def run_load_disturbance_campaign(
         linestyle=IEEE_LINESTYLES["Constraint"],
         linewidth=1.0,
     )
-    ax2.set_ylabel("Coolant Flow $q_j$ (L/min)", fontsize=8.5)
+    ax2.set_ylabel(r"Coolant Flow $q_j$ (L/min)", fontsize=8.5)
     ax2.set_xlabel("Time $t$ (min)", fontsize=8.5)
     ax2.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax2.grid(True, linestyle=":", alpha=0.6)
@@ -411,11 +411,11 @@ def run_fouling_campaign(
         limits.u_max,
         color=IEEE_PALETTE["Constraint"],
         linestyle=IEEE_LINESTYLES["Constraint"],
-        label="Limits ($u_{\\min}, u_{\\max}$)",
+        label=r"Limits ($u_{\mathrm{min}}, u_{\mathrm{max}}$)",
         linewidth=1.0,
     )
-    ax3.set_title("(c) Clean Jacket ($100\\% UA$): Coolant $q_j$", fontsize=9.0)
-    ax3.set_ylabel("Coolant Flow $q_j$ (L/min)", fontsize=8.5)
+    ax3.set_title(r"(c) Clean Jacket ($100\% UA$): Coolant $q_j$", fontsize=9.0)
+    ax3.set_ylabel(r"Coolant Flow $q_j$ (L/min)", fontsize=8.5)
     ax3.set_xlabel("Time $t$ (min)", fontsize=8.5)
     ax3.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax3.grid(True, linestyle=":", alpha=0.6)
@@ -429,10 +429,10 @@ def run_fouling_campaign(
         limits.u_max,
         color=IEEE_PALETTE["Constraint"],
         linestyle=IEEE_LINESTYLES["Constraint"],
-        label="Limits ($u_{\\min}, u_{\\max}$)",
+        label=r"Limits ($u_{\mathrm{min}}, u_{\mathrm{max}}$)",
         linewidth=1.0,
     )
-    ax4.set_title("(d) Fouled Jacket ($70\\% UA$): Coolant $q_j$", fontsize=9.0)
+    ax4.set_title(r"(d) Fouled Jacket ($70\% UA$): Coolant $q_j$", fontsize=9.0)
     ax4.set_xlabel("Time $t$ (min)", fontsize=8.5)
     ax4.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax4.grid(True, linestyle=":", alpha=0.6)
@@ -684,7 +684,7 @@ def run_multistep_campaign(
         limits.u_max,
         color=IEEE_PALETTE["Constraint"],
         linestyle=IEEE_LINESTYLES["Constraint"],
-        label="Limits ($u_{\\min}, u_{\\max}$)",
+        label=r"Limits ($u_{\mathrm{min}}, u_{\mathrm{max}}$)",
         linewidth=1.0,
     )
     ax2.axhline(
@@ -693,7 +693,7 @@ def run_multistep_campaign(
         linestyle=IEEE_LINESTYLES["Constraint"],
         linewidth=1.0,
     )
-    ax2.set_ylabel("Coolant Flow $q_j$ (L/min)", fontsize=8.5)
+    ax2.set_ylabel(r"Coolant Flow $q_j$ (L/min)", fontsize=8.5)
     ax2.set_xlabel("Time $t$ (min)", fontsize=8.5)
     ax2.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax2.grid(True, linestyle=":", alpha=0.6)
