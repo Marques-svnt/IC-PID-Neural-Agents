@@ -46,6 +46,7 @@ select = ["E", "F", "W", "I", "N", "D"]
 ignore = [
     "D100",  # Missing docstring in public module
     "D104",  # Missing docstring in public package
+    "D105",  # Missing docstring in magic method (__post_init__, etc.)
     "N803",  # Argument name should be lowercase (allowed for scientific math: C_A, T)
     "N806",  # Variable name in function should be lowercase (allowed for math: A, B, C_A, T)
     "N815",  # Variable in class scope should not be mixedCase (allowed for math: delta_H)
