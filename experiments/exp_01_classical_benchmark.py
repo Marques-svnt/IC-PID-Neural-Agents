@@ -8,8 +8,8 @@ Generates publication figures and LaTeX tables for Article 1:
 """
 
 import logging
-from pathlib import Path
 import sys
+from pathlib import Path
 
 # Ensure project root is in sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -134,15 +134,15 @@ def run_benchmark() -> None:
         ms = calculate_maximum_sensitivity(plant, ss, q_j_ss, gains)
         table_rows.append({
             "Method": name,
-            "Kp": f"{gains.kp:.2f}",
-            "Ti (min)": f"{gains.ti:.2f}",
-            "Td (min)": f"{gains.td:.3f}",
+            "$K_p$": f"{gains.kp:.2f}",
+            "$T_i$ (min)": f"{gains.ti:.2f}",
+            "$T_d$ (min)": f"{gains.td:.3f}",
             "IAE": f"{res.metrics.iae:.2f}",
             "ITAE": f"{res.metrics.itae:.2f}",
             "TV (L/min)": f"{res.metrics.tv:.1f}",
-            "Mp (%)": f"{res.metrics.overshoot_pct:.1f}",
-            "ts (min)": f"{res.metrics.settling_time:.2f}" if res.metrics.settling_time else "N/A",
-            "Ms": f"{ms:.2f}",
+            "$M_p$ (\\%)": f"{res.metrics.overshoot_pct:.1f}",
+            "$t_s$ (min)": f"{res.metrics.settling_time:.2f}" if res.metrics.settling_time else "N/A",
+            "$M_s$": f"{ms:.2f}",
         })
 
     # 4. Generate LaTeX Table using clean booktabs
