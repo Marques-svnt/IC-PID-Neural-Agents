@@ -1,39 +1,38 @@
 % ============================================================
-%  Section 2: Mathematical Modeling of the Non-linear CSTR
+%  Section 2: Mathematical Modeling of the Non-linear CSTR and Controllability Limits
 % ============================================================
 
 \subsection{Non-linear Physical Plant Model}
-A continuous stirred tank reactor (CSTR) undergoing an irreversible, first-order exothermic reaction $A \xrightarrow{k} B$ is considered. To account for realistic heat exchange dynamics, the cooling jacket is modeled explicitly as a dynamic lumped system rather than assuming instantaneous jacket temperature control.
+A continuous stirred tank reactor (CSTR) conducting an irreversible, liquid-phase exothermic reaction $A \xrightarrow{k} B$ is considered \cite{luyben2007chemical, seborg2010process}. Rather than adopting the frequent simplification of instantaneous jacket dynamics, the cooling jacket is modeled explicitly as a dynamic lumped thermal system coupled through non-linear heat convection across the reactor wall \cite{uppal1974dynamic}.
 
-The non-linear system is governed by three coupled ordinary differential equations (ODEs) derived from dynamic mass and energy balances:
-
+The dynamic behavior of the process is governed by three coupled non-linear ordinary differential equations (ODEs) derived from dynamic species mass and thermal energy balances:
 \begin{align}
     \frac{dC_A}{dt} &= \frac{q}{V}(C_{Af} - C_A) - r_A(C_A, T) \label{eq:cstr_ca} \\
     \frac{dT}{dt}   &= \frac{q}{V}(T_f - T) + \frac{(-\Delta H)}{\rho C_p} r_A(C_A, T) - \frac{UA}{V \rho C_p}(T - T_j) \label{eq:cstr_t} \\
     \frac{dT_j}{dt} &= \frac{q_j}{V_j}(T_{jf} - T_j) + \frac{UA}{V_j \rho_j C_{pj}}(T - T_j) \label{eq:cstr_tj}
 \end{align}
-where the reaction rate $r_A(C_A, T)$ follows Arrhenius temperature dependency:
+where $C_A$ denotes the concentration of reactant $A$ in the reactor, $T$ is the bulk reactor temperature, and $T_j$ is the cooling jacket temperature. The non-linear reaction rate $r_A(C_A, T)$ obeys Arrhenius kinetics:
 \begin{equation}
     r_A(C_A, T) = k_0 \exp\left(-\frac{E}{R\,T}\right) C_A
     \label{eq:arrhenius}
 \end{equation}
+The physical state vector is $\mathbf{x} = [C_A, T, T_j]^T \in \mathbb{R}^3$, the manipulated input is the coolant volumetric flow rate $u(t) = q_j(t) \in \mathbb{R}$, and the measured process output is the reactor core temperature $y(t) = T(t)$.
 
-In this formulation, the state vector is $\mathbf{x} = [C_A, T, T_j]^T$, where $C_A$ is the reactant concentration in the reactor, $T$ is the internal reactor temperature, and $T_j$ is the cooling jacket temperature. The manipulated variable is the coolant volumetric flow rate $u(t) = q_j(t)$. The primary controlled variable is the reactor temperature $y(t) = T(t)$.
-
-\subsection{Actuator Nonlinearity and Physical Saturation}
-Industrial control valves cannot deliver infinite flow rates or instantaneously switch valve positions. Consequently, the manipulated input $u(t) = q_j(t)$ is subjected to hard amplitude saturation and rate-of-change (slew rate) limits:
+\subsection{Actuator Physical Constraints and Slew-Rate Dynamics}
+In physical chemical plants, control valves are constrained by finite physical stroke and actuator motor torque limits \cite{hippe2006windup, tarbouriech2009antiwindup}. The manipulated coolant flow $q_j(t)$ is bounded by hard amplitude saturation and valve travel velocity (slew-rate) limits:
 \begin{align}
-    u_{\min} &\le q_j(t) \le u_{\max} \\
-    \left|\frac{dq_j}{dt}\right| &\le S_{\max}
+    u_{\min} &\le q_j(t) \le u_{\max} \label{eq:actuator_amplitude} \\
+    \left|\frac{dq_j}{dt}\right| &\le S_{\max} \label{eq:actuator_slew}
 \end{align}
-where $u_{\min} = 0.0$~L/min (fully closed valve), $u_{\max} = 300.0$~L/min (maximum valve capacity), and $S_{\max} = 80.0$~L/min$^2$.
+where $u_{\min} = 0.0$~L/min represents a fully closed valve, $u_{\max} = 300.0$~L/min corresponds to full valve opening, and $S_{\max} = 80.0$~L/min$^2$ models the electro-pneumatic actuator positioning speed. Slew-rate clamping introduces an effective dynamic dead time when sudden cooling surges are commanded, severely exacerbating the risk of overshoot.
 
 \subsection{Nominal Operating Parameters and Equilibrium}
-The nominal physico-chemical parameters of the CSTR benchmark are summarized in Table~\ref{tab:cstr_parameters}. Under the nominal steady-state coolant flow rate $q_{j,ss} = 100.0$~L/min, the non-linear root-finding problem $\mathbf{f}(\mathbf{x}_{ss}, q_{j,ss}) = \mathbf{0}$ yields the nominal operating point:
+The nominal physico-chemical parameters are compiled in Table~\ref{tab:cstr_parameters}. Under the nominal steady-state coolant flow rate $q_{j,ss} = 100.0$~L/min, the non-linear algebraic system $\mathbf{f}(\mathbf{x}_{ss}, q_{j,ss}) = \mathbf{0}$ yields the nominal operating point:
 \begin{equation}
     \mathbf{x}_{ss} = \begin{bmatrix} C_{A,ss} \\ T_{ss} \\ T_{j,ss} \end{bmatrix} = \begin{bmatrix} 0.0502\text{ mol/L} \\ 396.65\text{ K} \\ 348.33\text{ K} \end{bmatrix}
+    \label{eq:nominal_ss}
 \end{equation}
-which corresponds to a high conversion regime ($X_A \approx 95\%$) where the reactor is highly sensitive to thermal perturbations.
+This equilibrium corresponds to a high reactant conversion of $X_A = (C_{Af} - C_{A,ss})/C_{Af} \approx 95\%$. At this elevated conversion, the reactor operates near maximum heat release, where small positive temperature perturbations trigger exponential acceleration of the reaction rate.
 
 \begin{table}[htbp]
 \centering
@@ -59,3 +58,24 @@ Nominal coolant flow & $q_{j,ss}$ & $100.0$ & L/min \\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection{Thermal Controllability Boundaries and Van Heerden Analysis}
+\label{subsec:thermal_controllability}
+The controllability of exothermic CSTRs is fundamentally bounded by the balance between non-linear heat generation $Q_g(T)$ and dynamic heat removal $Q_r(T, q_j)$ \cite{aris1958analysis, uppal1974dynamic}:
+\begin{align}
+    Q_g(T) &= (-\Delta H) V r_A(C_A(T), T) \label{eq:q_gen} \\
+    Q_r(T, q_j) &= q \rho C_p (T - T_f) + UA (T - T_j(q_j)) \label{eq:q_rem}
+\end{align}
+According to the classic Van Heerden stability criterion \cite{seborg2010process, bequette2003process}, open-loop thermal runaway occurs whenever the temperature sensitivity of heat generation exceeds that of heat removal:
+\begin{equation}
+    \left. \frac{\partial Q_g}{\partial T} \right|_{\mathbf{x}_{ss}} > \left. \frac{\partial Q_r}{\partial T} \right|_{\mathbf{x}_{ss}}
+    \label{eq:van_heerden}
+\end{equation}
+At nominal steady state, the system possesses an open-loop unstable eigenvalue ($\lambda_1 = +0.284$~min$^{-1}$), requiring active feedback stabilization.
+
+Furthermore, physical actuator saturation imposes an absolute limit on heat removal. Even at full valve capacity ($q_j = u_{\max} = 300$~L/min), the maximum achievable cooling rate is strictly bounded by:
+\begin{equation}
+    Q_{r, \max}(T) = q \rho C_p (T - T_f) + UA (T - T_{jf})
+    \label{eq:max_cooling_limit}
+\end{equation}
+When the overall heat transfer capability degrades (e.g., due to polymer fouling on the heat exchange surface such that $UA < UA_{\text{crit}} \approx 0.65 UA_0$), $Q_g(T) > Q_{r, \max}(T)$ over a finite temperature interval. Under such conditions, the plant enters an unrecoverable thermal runaway regime regardless of the control law employed. This analytical boundary establishes the physical foundation for the fouling and load disturbance stress tests evaluated herein.
