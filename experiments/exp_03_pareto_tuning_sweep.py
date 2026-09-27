@@ -72,15 +72,15 @@ def export_latex_table(
 \\centering
 \\caption{{{caption}}}
 \\label{{{label}}}
-\\resizebox{{\\columnwidth}}{{!}}{{%
+\\footnotesize
+\\setlength{{\\tabcolsep}}{{2.5pt}}
 \\begin{{tabular}}{{{col_align}}}
 \\toprule
 {cols} \\\\
 \\midrule
 {rows_str}
 \\bottomrule
-\\end{{tabular}}%
-}}
+\\end{{tabular}}
 \\end{{table}}
 """
     output_path.write_text(latex_code, encoding="utf-8")
@@ -284,7 +284,7 @@ def run_benchmark_points(
         "Ziegler-Nichols": tune_analytical(foptd, TuningRule.ZIEGLER_NICHOLS_PID),
         "Cohen-Coon": tune_analytical(foptd, TuningRule.COHEN_COON_PID),
         "Skogestad SIMC": tune_analytical(foptd, TuningRule.SKOGESTAD_SIMC_PID, tau_c=0.40),
-        "Optimal ITAE (Ms<=1.6)": tune_by_optimization(
+        r"Optimal ITAE ($M_s \leq 1.6$)": tune_by_optimization(
             plant=plant,
             nominal_state=ss,
             q_j_ss=q_j_ss,
@@ -399,9 +399,9 @@ def plot_true_pareto_frontier(
 
     ax1.set_xlim(-5, 300)
     ax1.set_ylim(1.0, 5.5)
-    ax1.set_xlabel("Actuator Total Variation $TV$ (L/min) [Wear / Effort]")
-    ax1.set_ylabel("Integral Absolute Error $IAE$ (K$\\cdot$min) [Tracking Error]")
-    ax1.set_title("(a) True Pareto Trade-off: $IAE$ vs $TV$", fontsize=9.0)
+    ax1.set_xlabel(r"Actuator Total Variation $\mathrm{TV}$ (L/min) [Wear / Effort]")
+    ax1.set_ylabel(r"Tracking Error $\mathrm{IAE}$ (K$\cdot$min)")
+    ax1.set_title(r"(a) True Pareto Trade-off: $\mathrm{IAE}$ vs $\mathrm{TV}$", fontsize=9.0)
     ax1.legend(loc="upper right", fontsize=7.0, framealpha=0.9)
     ax1.grid(True, linestyle=":", alpha=0.6)
 
