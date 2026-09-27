@@ -62,10 +62,12 @@ Four classical tuning paradigms with contrasting design philosophies are evaluat
     yielding $K_p = -45.5$, $T_i = 0.222$~min, and $T_d = 0.033$~min.
 
     \item \textbf{Skogestad SIMC:} Analytically derived internal model control rule designed to guarantee robust stability and smooth control effort \cite{skogestad2003simple, grimholt2018optimal}:
-    \begin{equation}
-        K_p = \frac{1}{K}\frac{\tau}{\tau_c + \theta}, \quad T_i = \min\left(\tau, 4(\tau_c + \theta)\right), \quad T_d = 0.33\theta
+    \begin{align}
+        K_p &= \frac{1}{K}\frac{\tau}{\tau_c + \theta}, \nonumber \\
+        T_i &= \min\left(\tau, 4(\tau_c + \theta)\right), \quad T_d = 0.33\theta
         \label{eq:simc_formula}
-    \end{equation}
+    \end{align}
+
     where $\tau_c$ represents the sole user-specified closed-loop time constant. Selecting $\tau_c = 0.40$~min achieves a balanced trade-off between command tracking speed and robust stability margins ($K_p = -7.03$, $T_i = 0.643$~min, $T_d = 0.031$~min) \cite{alcantara2013simple}.
     
     It is noteworthy that for canonical First-Order Plus Dead-Time (FOPTD) plants, the classical SIMC rule \cite{skogestad2003simple} natively favors a PI structure ($T_d = 0$) to preclude high-frequency sensor noise transmission. However, the physical CSTR investigated herein is fundamentally a third-order coupled non-linear system, wherein the cooling jacket thermal capacitance introduces an unmodeled dynamic pole that was lumped into the apparent dead time ($\theta = 0.093$~min) during open-loop identification. In accordance with generalized SIMC formulations for higher-order lag-dominant processes \cite{grimholt2018optimal, alcantara2013simple, odwyer2009handbook}, the fractional derivative action $T_d = 0.33\theta = 0.031$~min is incorporated to inject phase lead ($\approx 10^\circ$) in the vicinity of the gain crossover frequency. This phase lead compensates for the phase lag induced by actuator slew-rate limitations ($S_{\max} = 80.0$~L/min$^2$) and jacket thermal inertia. High-frequency noise transmission is strictly suppressed by computing derivative action exclusively on the process measurement (Eq.~\eqref{eq:derivative_filtered}) and implementing a first-order lag filter with $N = 10$, which caps the high-frequency controller gain at $|K_p|(1 + N)$ \cite{astrom2006pid, visioli2006practical}.
@@ -90,6 +92,7 @@ where $C(s) = K_p \left(1 + \frac{1}{T_i s} + \frac{T_d s}{\tau_f s + 1}\right)$
         &= \sup_{\omega \ge 0} \left| \frac{1}{1 + G_p(j\omega) C(j\omega)} \right|
     \label{eq:ms_peak}
 \end{align}
+
 Geometrically, $M_s$ represents the inverse of the minimum Euclidean distance from the open-loop Nyquist trajectory $L(j\omega) = G_p(j\omega)C(j\omega)$ to the critical -1 point $(-1, j0)$ in the complex plane. A maximum sensitivity constraint $M_s \le 1.6$ enforces strict lower bounds on the classical gain margin ($GM$) and phase margin ($PM$) \cite{garpinger2014performance, padula2012optimal}:
 \begin{align}
     GM &\ge \frac{M_s}{M_s - 1} = \frac{1.6}{0.6} \approx 2.67 \quad (8.52\text{ dB}) \label{eq:gain_margin} \\
