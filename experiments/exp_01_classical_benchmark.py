@@ -210,7 +210,7 @@ def run_benchmark() -> None:
         limits.u_max,
         color=IEEE_PALETTE["Constraint"],
         linestyle=IEEE_LINESTYLES["Constraint"],
-        label="Limits ($u_{\\min}, u_{\\max}$)",
+        label=r"Limits ($u_{\mathrm{min}}, u_{\mathrm{max}}$)",
         linewidth=1.0,
     )
     ax2.axhline(
@@ -219,7 +219,7 @@ def run_benchmark() -> None:
         linestyle=IEEE_LINESTYLES["Constraint"],
         linewidth=1.0,
     )
-    ax2.set_ylabel("Coolant Flow $q_j$ (L/min)", fontsize=8.5)
+    ax2.set_ylabel(r"Coolant Flow $q_j$ (L/min)", fontsize=8.5)
     ax2.set_xlabel("Time $t$ (min)", fontsize=8.5)
     ax2.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax2.grid(True, linestyle=":", alpha=0.6)
