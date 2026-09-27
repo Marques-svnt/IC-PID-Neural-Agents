@@ -445,9 +445,9 @@ def plot_true_pareto_frontier(
         color=color_iae,
         linestyle="-.",
         linewidth=1.5,
-        label="Tracking Error $IAE$",
+        label=r"Tracking Error $IAE$ (K$\cdot$min)",
     )
-    ax2_twin.set_ylabel(r"Integral Absolute Error $IAE$ (K$\cdot$min)", color=color_iae)
+    ax2_twin.set_ylabel(r"Tracking Error $IAE$ (K$\cdot$min)", color=color_iae)
     ax2_twin.tick_params(axis="y", labelcolor=color_iae)
     ax2_twin.set_ylim(1.0, 6.0)
 
@@ -545,25 +545,25 @@ def run_experiment() -> None:
         closest = min(simc_results, key=lambda r: abs(r["tau_c"] - target))
         table_rows.append({
             "Strategy": f"SIMC ($\\tau_c={closest['tau_c']:.2f}$)",
-            "$K_p$": f"{closest['kp']:.2f}",
-            "$T_i$ (min)": f"{closest['ti']:.2f}",
-            "$T_d$ (min)": f"{closest['td']:.2f}",
-            "$M_s$": f"{closest['ms']:.2f}",
+            "$K_{p}$": f"{closest['kp']:.2f}",
+            "$T_{i}$ (min)": f"{closest['ti']:.2f}",
+            "$T_{d}$ (min)": f"{closest['td']:.2f}",
+            "$M_{s}$": f"{closest['ms']:.2f}",
             "IAE (K$\\cdot$min)": f"{closest['iae']:.2f}",
             "TV (L/min)": f"{closest['tv']:.1f}",
-            "$M_p$ (\\%)": f"{closest['overshoot']:.1f}",
+            "$M_{p}$ (\\%)": f"{closest['overshoot']:.1f}",
         })
 
     for name, pt in discrete_points.items():
         table_rows.append({
             "Strategy": name,
-            "$K_p$": f"{pt['gains'].kp:.2f}",
-            "$T_i$ (min)": f"{pt['gains'].ti:.2f}",
-            "$T_d$ (min)": f"{pt['gains'].td:.2f}",
-            "$M_s$": f"{pt['ms']:.2f}",
+            "$K_{p}$": f"{pt['gains'].kp:.2f}",
+            "$T_{i}$ (min)": f"{pt['gains'].ti:.2f}",
+            "$T_{d}$ (min)": f"{pt['gains'].td:.2f}",
+            "$M_{s}$": f"{pt['ms']:.2f}",
             "IAE (K$\\cdot$min)": f"{pt['iae']:.2f}",
             "TV (L/min)": f"{pt['tv']:.1f}",
-            "$M_p$ (\\%)": f"{pt['overshoot']:.1f}",
+            "$M_{p}$ (\\%)": f"{pt['overshoot']:.1f}",
         })
 
     export_latex_table(
