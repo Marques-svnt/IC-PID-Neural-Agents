@@ -94,22 +94,18 @@ def run_benchmark() -> None:
             plant=plant,
             nominal_state=ss,
             q_j_ss=q_j_ss,
-            target_dT=-2.0,
             criterion=OptimizationCriterion.ITAE,
             max_ms=1.6,
-            t_sim=6.0,
-            dt=dt,
         ),
     }
 
-    # 3. Simulate Closed Loop for each controller
+    # 3. Simulate Closed Loop for each controller (Deterministic Nominal Benchmark)
     sim = ClosedLoopSimulator(integrator=integrator)
     t_sim_span = (0.0, 10.0)
     target_T = ss.T - 2.0  # Setpoint step of -2 K
 
     def setpoint_profile(t: float) -> float:
-        # Step from ss.T to target_T at t = 0.5 min
-        return target_T if t >= 0.5 else ss.T
+        return target_T
 
     sim_results = {}
     table_rows = []
@@ -132,7 +128,7 @@ def run_benchmark() -> None:
             t_span=t_sim_span,
             dt=dt,
             setpoint_func=setpoint_profile,
-            noise_std=0.1,  # realistic noise
+            noise_std=0.0,  # Pure deterministic tracking to isolate nominal dynamics
             seed=42,
         )
         sim_results[name] = res
