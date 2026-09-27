@@ -1,3 +1,55 @@
-% Placeholder sections — completar conforme desenvolvimento das Fases 3-6
-% TODO: Preencher com conteúdo técnico após execução das fases
+% ============================================================
+%  Section 3: Classical PID Tuning Architectures and Tuning
+% ============================================================
 
+\subsection{Discrete Parallel PID Architecture with Derivative Filtering}
+The parallel discrete PID formulation is implemented with derivative action computed exclusively on the process measurement to eliminate "derivative kick" during step setpoint changes:
+\begin{equation}
+    u_{\text{raw}, k} = u_{\text{bias}} + P_k + I_k + D_k
+    \label{eq:pid_parallel}
+\end{equation}
+where $e_k = y_{sp, k} - y_{pv, k}$ is the error between setpoint and measured temperature, and $u_{\text{bias}} = q_{j,ss} = 100.0$~L/min is the feedforward baseline. The proportional, integral, and derivative components are given by:
+\begin{align}
+    P_k &= K_p e_k \\
+    I_k &= I_{k-1} + \frac{K_p}{T_i} \left(\frac{e_k + e_{k-1}}{2}\right) \Delta t \label{eq:integral_trapezoidal} \\
+    D_k &= \frac{\tau_f}{\tau_f + \Delta t} D_{k-1} - \frac{K_p T_d}{\tau_f + \Delta t} (y_{pv, k} - y_{pv, k-1})
+\end{align}
+where $T_i$ is the integral time, $T_d$ is the derivative time, and $\tau_f = T_d / N$ is the derivative filter time constant, configured with $N = 10$ to attenuate high-frequency sensor noise.
+
+\subsection{Anti-Windup Protection (Clamping vs. Back-Calculation)}
+When the commanded control signal exceeds the valve physical bounds $u_{\text{raw}, k} \notin [u_{\min}, u_{\max}]$, integrator windup occurs if error accumulation persists. To prevent destabilization, conditional integration (integrator clamping) is employed:
+\begin{equation}
+    I_k = \begin{cases}
+        I_{k-1}, & \text{if } (u_{\text{raw}, k} \ge u_{\max} \text{ and } e_k \cdot K_p > 0) \\
+                 & \text{or } (u_{\text{raw}, k} \le u_{\min} \text{ and } e_k \cdot K_p < 0) \\
+        I_k,     & \text{otherwise}
+    \end{cases}
+\end{equation}
+
+\subsection{First-Order Plus Dead-Time (FOPTD) Identification}
+To apply classical tuning formulas, a $+10.0$~L/min step in coolant flow rate was applied at nominal steady state. The resulting temperature response was identified via non-linear least squares into a First-Order Plus Dead-Time (FOPTD) model:
+\begin{equation}
+    G_p(s) = \frac{K}{\tau s + 1} e^{-\theta s}
+    \label{eq:foptd}
+\end{equation}
+yielding process gain $K = -0.1582$~K/(L/min), dominant time constant $\tau = 1.096$~min, and apparent dead time $\theta = 0.093$~min (RMSE $= 0.0031$~K). The controllability ratio $\theta / \tau \approx 0.085$ classifies the CSTR locally as a lag-dominant process.
+
+\subsection{Tuning Strategies}
+Four distinct tuning strategies are benchmarked:
+\begin{enumerate}
+    \item \textbf{Ziegler--Nichols (ZN) Reaction Curve:} Classical quarter-amplitude decay tuning \cite{ziegler1942optimum}, yielding high proportional action:
+    \begin{equation}
+        K_p = \frac{1.2 \tau}{K \theta}, \quad T_i = 2 \theta, \quad T_d = 0.5 \theta
+    \end{equation}
+    \item \textbf{Cohen--Coon (CC):} Empirical formula designed to provide faster recovery for non-zero dead times \cite{cohen1953theoretical}.
+    \item \textbf{Skogestad SIMC:} Simple internal model control tuning rule designed for robust closed-loop operation \cite{skogestad2003simple}:
+    \begin{equation}
+        K_p = \frac{1}{K} \frac{\tau}{\tau_c + \theta}, \quad T_i = \min\left(\tau, 4(\tau_c + \theta)\right), \quad T_d = 0
+    \end{equation}
+    where $\tau_c = 0.40$~min was selected to balance agility and stability margins.
+    \item \textbf{Constrained Numerical Optimization (ITAE with $M_s \le 1.6$):} Direct Nelder--Mead minimization of the Integral Time-weighted Absolute Error (ITAE) subjected to a hard frequency-domain robustness constraint on the maximum sensitivity peak $M_s$:
+    \begin{equation}
+        \min_{K_p, T_i, T_d} \int_0^{t_{\text{sim}}} t |e(t)| \, dt \quad \text{s.t.} \quad M_s \le 1.6
+    \end{equation}
+    where $M_s = \max_\omega |S(j\omega)| = \max_\omega \left|\frac{1}{1 + G_p(j\omega) C(j\omega)}\right|$.
+\end{enumerate}
