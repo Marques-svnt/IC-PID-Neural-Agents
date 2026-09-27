@@ -2,6 +2,7 @@
 \centering
 \caption{Sensitivity of tracking error (IAE) and actuator effort (TV) to measurement noise levels across $5$ Monte Carlo runs.}
 \label{tab:noise_sensitivity}
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lccc}
 \toprule
 Method & Noise $\sigma$ (K) & IAE (mean $\pm$ std) & TV (L/min) \\
@@ -27,5 +28,6 @@ Optimal ITAE ($M_s \leq 1.6$) & 0.2 & 2.41 $\pm$ 0.08 & 706.6 $\pm$ 6.4 \\
 Optimal ITAE ($M_s \leq 1.6$) & 0.5 & 4.80 $\pm$ 0.12 & 760.1 $\pm$ 5.8 \\
 Optimal ITAE ($M_s \leq 1.6$) & 1.0 & 8.90 $\pm$ 0.19 & 772.5 $\pm$ 6.7 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
