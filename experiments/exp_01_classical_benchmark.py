@@ -136,19 +136,19 @@ def run_benchmark() -> None:
         ms = calculate_maximum_sensitivity(plant, ss, q_j_ss, gains)
         table_rows.append({
             "Method": name,
-            "$K_p$": f"{gains.kp:.2f}",
-            "$T_i$ (min)": f"{gains.ti:.2f}",
-            "$T_d$ (min)": f"{gains.td:.3f}",
+            "$K_{p}$": f"{gains.kp:.2f}",
+            "$T_{i}$ (min)": f"{gains.ti:.2f}",
+            "$T_{d}$ (min)": f"{gains.td:.3f}",
             "IAE": f"{res.metrics.iae:.2f}",
             "ITAE": f"{res.metrics.itae:.2f}",
             "TV (L/min)": f"{res.metrics.tv:.1f}",
-            "$M_p$ (\\%)": f"{res.metrics.overshoot_pct:.1f}",
-            "$t_s$ (min)": (
+            "$M_{p}$ (\\%)": f"{res.metrics.overshoot_pct:.1f}",
+            "$t_{s}$ (min)": (
                 f"{res.metrics.settling_time:.2f}"
                 if res.metrics.settling_time is not None
                 else "N/A"
             ),
-            "$M_s$": f"{ms:.2f}",
+            "$M_{s}$": f"{ms:.2f}",
         })
 
     # 4. Generate LaTeX Table using clean booktabs
