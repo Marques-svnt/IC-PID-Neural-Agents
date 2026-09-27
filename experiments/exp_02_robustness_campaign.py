@@ -330,11 +330,11 @@ def run_fouling_campaign(
 
             table_rows.append({
                 "Method": name,
-                "UA / UA_nom": f"{int(f_ratio * 100)}%",
+                "$UA / UA_{\\text{nom}}$": f"{int(f_ratio * 100)}\\%",
                 "IAE": f"{res.metrics.iae:.2f}",
                 "ITAE": f"{res.metrics.itae:.2f}",
                 "TV (L/min)": f"{res.metrics.tv:.1f}",
-                "Mp (%)": f"{res.metrics.overshoot_pct:.1f}",
+                "$M_p$ (\\%)": f"{res.metrics.overshoot_pct:.1f}",
             })
 
     export_latex_table(
