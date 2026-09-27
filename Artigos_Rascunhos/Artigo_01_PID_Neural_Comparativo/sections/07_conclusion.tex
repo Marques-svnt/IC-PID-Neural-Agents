@@ -1,1 +1,14 @@
-% TODO — Preencher após Fase 6
+% ============================================================
+%  Section 7: Conclusion and Future Directions
+% ============================================================
+
+This work presented an exhaustive computational benchmark evaluating classical PID tuning strategies on a highly non-linear, non-isothermal Continuous Stirred Tank Reactor (CSTR) subject to actuator saturation and slew-rate dynamics. Four tuning paradigms—Ziegler--Nichols (ZN), Cohen--Coon (CC), Skogestad SIMC, and Constrained Numerical Optimization (ITAE with $M_s \le 1.6$)—were systematically assessed across nominal tracking, unmeasured load disturbances, heat exchanger fouling, sensor noise, and multi-operating point transitions.
+
+The benchmark yielded several key conclusions:
+\begin{enumerate}
+    \item \textbf{Vulnerability of Empirical Formulas:} Classical ZN and CC formulas generated excessively high proportional gains due to the small apparent dead time ($\theta = 0.093$~min), driving the coolant valve into continuous saturation. Under feed temperature and concentration surges, these controllers failed to prevent near-runaway temperature excursions ($\Delta T > 43$~K) and provoked destructive limit cycles.
+    \item \textbf{Efficacy of Model-Based and Robust Optimization:} Skogestad SIMC ($\tau_c = 0.40$~min) and Constrained Optimal ITAE ($M_s \le 1.6$) demonstrated outstanding robustness, maintaining stable, well-damped tracking ($IAE < 1.8$, $M_p \le 12\%$) and rejecting combined feed disturbances with peak deviations under $7.4$~K.
+    \item \textbf{Thermal Fouling Tolerance:} Both SIMC and Constrained Optimal ITAE preserved closed-loop stability and zero steady-state error under jacket heat transfer degradations down to $70\% UA$. At $60\% UA$, physical cooling limits prevented full thermal recovery, establishing the empirical controllability boundary of the process.
+    \item \textbf{Noise vs. Actuator Wear Trade-off:} Monte Carlo analysis revealed that while derivative filtering ($N = 10$) effectively stabilizes the derivative term, sensor noise elevates total control variation ($TV$) by more than an order of magnitude, illustrating the fundamental trade-off between regulatory speed and valve longevity.
+    \item \textbf{Regime Dependence and Motivation for Adaptive Control:} Wide-range multi-operating point tracking demonstrated that fixed-gain linear controllers cannot maintain optimal performance across asymmetric reaction regimes. This motivates the subsequent development of neural network-based gain scheduling and autonomous multi-agent supervisory frameworks.
+\end{enumerate}
