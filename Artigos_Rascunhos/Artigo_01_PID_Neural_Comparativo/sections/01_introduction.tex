@@ -1,32 +1,15 @@
 % ============================================================
-%  Seção 1: Introduction — Rascunho
-%  Preencher / refinar conforme revisão bibliográfica avança
+%  Section 1: Introduction
 % ============================================================
 
-% TODO: Revisar e expandir
-Proportional-Integral-Derivative (PID) controllers remain the dominant control 
-strategy in the chemical process industry, accounting for over 90\% of regulatory 
-control loops \cite{astrom2006pid}. Despite their widespread adoption, classical 
-fixed-gain PID controllers face significant challenges in highly nonlinear processes 
-such as Continuous Stirred Tank Reactors (CSTRs), where Arrhenius kinetics introduce 
-exponential temperature-reaction coupling and the risk of thermal runaway 
-\cite{seborg2010process}.
+Proportional-Integral-Derivative (PID) controllers remain the cornerstone of industrial automation, governing over $90\%$ of control loops in the chemical and process industries \cite{astrom2006pid}. Despite their ubiquity, fixed-gain PID controllers face fundamental limitations when deployed on highly non-linear, exothermic processes such as Continuous Stirred Tank Reactors (CSTRs). In these systems, Arrhenius reaction kinetics induce exponential temperature-reaction velocity coupling, frequently triggering catastrophic thermal runaway, multiplicity of steady states, or severe limit cycling if actuator saturation is poorly handled \cite{seborg2010process}.
 
-Recent advances in machine learning, particularly deep neural networks, have opened 
-new avenues for adaptive control that can dynamically adjust PID gains based on 
-real-time process states \cite{pid_neural_survey}. Furthermore, the emergence of 
-large language model-based agent frameworks such as LangGraph enables the orchestration 
-of specialized autonomous agents into coherent control pipelines, offering modular, 
-interpretable, and extensible control architectures.
+In academic literature, controller performance is often reported under idealized assumptions: ignoring physical actuator constraints (valve saturation and slew-rate limits), assuming instantaneous cooling jacket response, or omitting measurement noise and parameter drift. Consequently, tuning rules established on nominal linear models—such as the classic Ziegler--Nichols reaction curve \cite{ziegler1942optimum} and Cohen--Coon formulas \cite{cohen1953theoretical}—frequently lead to closed-loop instability or severe actuator degradation in real-world chemical plants.
 
-This paper makes the following contributions:
+To bridge this gap and establish a rigorous baseline for subsequent adaptive neural and agentic control architectures, this paper presents an exhaustive benchmark of classical PID tuning strategies on a simulated non-isothermal CSTR. The contributions of this work are fourfold:
 \begin{enumerate}
-    \item A systematic comparison of three classical PID tuning methods (Ziegler–Nichols, 
-    Cohen–Coon, and IMC) on a simulated CSTR;
-    \item A neural network-based adaptive PID controller (Neuro-PID) implemented 
-    in PyTorch that dynamically adjusts gains based on process state;
-    \item A multi-agent orchestration framework using LangGraph that integrates 
-    telemetry, surrogate modeling, neural tuning, and safety verification;
-    \item Quantitative performance evaluation using IAE, ITAE, and TV metrics 
-    under standardized test scenarios.
+    \item \textbf{Realistic Process Formulation:} A coupled three-state non-linear CSTR model incorporating explicit dynamic cooling jacket heat balances, non-linear Arrhenius kinetics, and physical control valve limitations (amplitude saturation $[0, 300]$~L/min and slew-rate clamping);
+    \item \textbf{Comparative Tuning Framework:} A systematic evaluation comparing empirical reaction-curve rules (Ziegler--Nichols, Cohen--Coon) against robust internal model control (Skogestad SIMC) and constrained numerical optimization (ITAE minimization with maximum sensitivity constraint $M_s \le 1.6$);
+    \item \textbf{Exhaustive Robustness Testing:} Rigorous stress-testing across sequential unmeasured load disturbances (feed temperature surge $+5$~K and concentration surge $+20\%$), heat exchanger surface fouling ($UA$ degradation from $100\%$ down to $60\%$), and wide-range multi-operating point transitions;
+    \item \textbf{Multi-Objective Pareto Analysis:} Quantitative mapping of the Pareto trade-off between setpoint tracking accuracy (IAE, ITAE) and actuator physical wear (Total Variation, $TV$) across varying sensor noise levels, establishing the fundamental operational limits of fixed-gain control.
 \end{enumerate}
