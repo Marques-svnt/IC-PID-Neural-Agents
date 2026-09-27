@@ -87,11 +87,10 @@ In modern process control, robustness to unmodeled plant dynamics and parametric
     T(s) &= \frac{G_p(s) C(s)}{1 + G_p(s) C(s)} = 1 - S(s) \label{eq:comp_sensitivity_func}
 \end{align}
 where $C(s) = K_p \left(1 + \frac{1}{T_i s} + \frac{T_d s}{\tau_f s + 1}\right)$. The maximum sensitivity peak $M_s$ is formally defined in the frequency domain as the $\mathcal{H}_\infty$ norm of $S(s)$:
-\begin{align}
-    M_s &\triangleq \|S\|_\infty = \sup_{\omega \ge 0} |S(j\omega)| \nonumber \\
-        &= \sup_{\omega \ge 0} \left| \frac{1}{1 + G_p(j\omega) C(j\omega)} \right|
+\begin{equation}
+    M_s \triangleq \|S\|_\infty = \sup_{\omega \ge 0} |S(j\omega)| = \sup_{\omega \ge 0} \left| 1 + G_p(j\omega) C(j\omega) \right|^{-1}
     \label{eq:ms_peak}
-\end{align}
+\end{equation}
 
 Geometrically, $M_s$ represents the inverse of the minimum Euclidean distance from the open-loop Nyquist trajectory $L(j\omega) = G_p(j\omega)C(j\omega)$ to the critical -1 point $(-1, j0)$ in the complex plane. A maximum sensitivity constraint $M_s \le 1.6$ enforces strict lower bounds on the classical gain margin ($GM$) and phase margin ($PM$) \cite{garpinger2014performance, padula2012optimal}:
 \begin{align}
