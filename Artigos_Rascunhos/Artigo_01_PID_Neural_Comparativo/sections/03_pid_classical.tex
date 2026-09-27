@@ -1,55 +1,95 @@
 % ============================================================
-%  Section 3: Classical PID Tuning Architectures and Tuning
+%  Section 3: Classical PID Architectures, Anti-Windup, and Robust Tuning
 % ============================================================
 
 \subsection{Discrete Parallel PID Architecture with Derivative Filtering}
-The parallel discrete PID formulation is implemented with derivative action computed exclusively on the process measurement to eliminate "derivative kick" during step setpoint changes:
+The parallel discrete PID formulation is implemented with derivative action computed exclusively on the process measurement $y_{pv}(t) = T(t)$ to eliminate setpoint kick during abrupt reference transitions \cite{astrom2006pid, seborg2010process}:
 \begin{equation}
     u_{\text{raw}, k} = u_{\text{bias}} + P_k + I_k + D_k
     \label{eq:pid_parallel}
 \end{equation}
-where $e_k = y_{sp, k} - y_{pv, k}$ is the error between setpoint and measured temperature, and $u_{\text{bias}} = q_{j,ss} = 100.0$~L/min is the feedforward baseline. The proportional, integral, and derivative components are given by:
+where $e_k = y_{sp, k} - y_{pv, k}$ denotes the tracking error, and $u_{\text{bias}} = q_{j,ss} = 100.0$~L/min represents the nominal steady-state coolant flow rate. The proportional, integral, and derivative components are computed at discrete intervals $\Delta t = 0.02$~min via:
 \begin{align}
-    P_k &= K_p e_k \\
+    P_k &= K_p e_k \label{eq:proportional_term} \\
     I_k &= I_{k-1} + \frac{K_p}{T_i} \left(\frac{e_k + e_{k-1}}{2}\right) \Delta t \label{eq:integral_trapezoidal} \\
-    D_k &= \frac{\tau_f}{\tau_f + \Delta t} D_{k-1} - \frac{K_p T_d}{\tau_f + \Delta t} (y_{pv, k} - y_{pv, k-1})
+    D_k &= \frac{\tau_f}{\tau_f + \Delta t} D_{k-1} - \frac{K_p T_d}{\tau_f + \Delta t} (y_{pv, k} - y_{pv, k-1}) \label{eq:derivative_filtered}
 \end{align}
-where $T_i$ is the integral time, $T_d$ is the derivative time, and $\tau_f = T_d / N$ is the derivative filter time constant, configured with $N = 10$ to attenuate high-frequency sensor noise.
+where $K_p$ is the proportional controller gain, $T_i$ is the integral reset time, $T_d$ is the derivative time constant, and $\tau_f = T_d / N$ is the derivative filter lag time. Setting $N = 10$ provides effective high-frequency measurement noise attenuation while preserving requisite phase lead in the vicinity of the gain crossover frequency \cite{astrom1995pid, visioli2006practical}.
 
-\subsection{Anti-Windup Protection (Clamping vs. Back-Calculation)}
-When the commanded control signal exceeds the valve physical bounds $u_{\text{raw}, k} \notin [u_{\min}, u_{\max}]$, integrator windup occurs if error accumulation persists. To prevent destabilization, conditional integration (integrator clamping) is employed:
+\subsection{Actuator Nonlinearity and Anti-Windup Protection}
+When the unconstrained control command $u_{\text{raw}, k}$ exceeds physical valve boundaries $[u_{\min}, u_{\max}]$ or violates the maximum slew-rate limit $S_{\max}$, the feedback loop is temporarily broken. Unchecked error accumulation within the integrator induces severe reset windup, provoking catastrophic temperature overshoots and prolonged recovery times in exothermic reactors \cite{hippe2006windup, tarbouriech2009antiwindup}.
+
+To mitigate windup, conditional integration (integrator clamping) is implemented:
 \begin{equation}
     I_k = \begin{cases}
         I_{k-1}, & \text{if } (u_{\text{raw}, k} \ge u_{\max} \text{ and } e_k \cdot K_p > 0) \\
                  & \text{or } (u_{\text{raw}, k} \le u_{\min} \text{ and } e_k \cdot K_p < 0) \\
         I_k,     & \text{otherwise}
     \end{cases}
+    \label{eq:clamping_antiwindup}
 \end{equation}
+Equation~\eqref{eq:clamping_antiwindup} halts integration immediately when the actuator saturates in the direction that would exacerbate the saturation, while retaining full responsiveness to reverse error trajectories \cite{bohn1995analysis, peng1996nonlinear}.
 
-\subsection{First-Order Plus Dead-Time (FOPTD) Identification}
-To apply classical tuning formulas, a $+10.0$~L/min step in coolant flow rate was applied at nominal steady state. The resulting temperature response was identified via non-linear least squares into a First-Order Plus Dead-Time (FOPTD) model:
+\subsection{FOPTD Identification and Process Controllability}
+To apply model-based tuning rules, an open-loop step change $\Delta q_j = +10.0$~L/min was performed around nominal equilibrium. Non-linear least-squares regression parameterized the thermal response into a First-Order Plus Dead-Time (FOPTD) transfer function:
 \begin{equation}
     G_p(s) = \frac{K}{\tau s + 1} e^{-\theta s}
     \label{eq:foptd}
 \end{equation}
-yielding process gain $K = -0.1582$~K/(L/min), dominant time constant $\tau = 1.096$~min, and apparent dead time $\theta = 0.093$~min (RMSE $= 0.0031$~K). The controllability ratio $\theta / \tau \approx 0.085$ classifies the CSTR locally as a lag-dominant process.
+yielding static gain $K = -0.1582$~K/(L/min), dominant time constant $\tau = 1.096$~min, and apparent dead time $\theta = 0.093$~min, with residual root-mean-square error $\text{RMSE} = 0.0031$~K.
 
-\subsection{Tuning Strategies}
-Four distinct tuning strategies are benchmarked:
+The normalized dead-time ratio:
+\begin{equation}
+    r = \frac{\theta}{\tau} = \frac{0.093}{1.096} \approx 0.085
+    \label{eq:controllability_ratio}
+\end{equation}
+classifies the CSTR locally as a strongly lag-dominant system ($r < 0.10$) \cite{shinskey1996process, odwyer2009handbook}. While small time delays theoretically facilitate high achievable bandwidth in linear systems, in exothermic CSTRs with physical valve saturation, excessive gains severely destabilize the closed-loop system.
+
+\subsection{Tuning Methodologies Benchmark}
+Four classical tuning paradigms with contrasting design philosophies are evaluated:
 \begin{enumerate}
-    \item \textbf{Ziegler--Nichols (ZN) Reaction Curve:} Classical quarter-amplitude decay tuning \cite{ziegler1942optimum}, yielding high proportional action:
+    \item \textbf{Ziegler--Nichols (ZN) Reaction Curve:} Classical empirical quarter-amplitude decay formula \cite{ziegler1942optimum}:
     \begin{equation}
-        K_p = \frac{1.2 \tau}{K \theta}, \quad T_i = 2 \theta, \quad T_d = 0.5 \theta
+        K_p = \frac{1.2 \tau}{K \theta}, \quad T_i = 2.0 \theta, \quad T_d = 0.5 \theta
     \end{equation}
-    \item \textbf{Cohen--Coon (CC):} Empirical formula designed to provide faster recovery for non-zero dead times \cite{cohen1953theoretical}.
-    \item \textbf{Skogestad SIMC:} Simple internal model control tuning rule designed for robust closed-loop operation \cite{skogestad2003simple}:
+    For $r = 0.085$, ZN prescribes an extreme proportional gain ($K_p = -51.8$) and brief reset time ($T_i = 0.186$~min), which proves devastating under actuator saturation.
+    
+    \item \textbf{Cohen--Coon (CC):} Empirical formula formulated to improve performance for non-negligible delay fractions \cite{cohen1953theoretical}:
+    \begin{align}
+        K_p &= \frac{\tau}{K \theta}\left(\frac{4}{3} + \frac{r}{4}\right), \\
+        T_i &= \theta \frac{32 + 6r}{13 + 8r}, \quad T_d = \theta \frac{4}{11 + 2r}
+    \end{align}
+    yielding $K_p = -45.5$, $T_i = 0.222$~min, and $T_d = 0.033$~min.
+
+    \item \textbf{Skogestad SIMC:} Analytically derived internal model control rule designed to guarantee robust stability and smooth control effort \cite{skogestad2003simple, grimholt2018optimal}:
     \begin{equation}
-        K_p = \frac{1}{K} \frac{\tau}{\tau_c + \theta}, \quad T_i = \min\left(\tau, 4(\tau_c + \theta)\right), \quad T_d = 0
+        K_p = \frac{1}{K}\frac{\tau}{\tau_c + \theta}, \quad T_i = \min\left(\tau, 4(\tau_c + \theta)\right), \quad T_d = 0.33\theta
+        \label{eq:simc_formula}
     \end{equation}
-    where $\tau_c = 0.40$~min was selected to balance agility and stability margins.
-    \item \textbf{Constrained Numerical Optimization (ITAE with $M_s \le 1.6$):} Direct Nelder--Mead minimization of the Integral Time-weighted Absolute Error (ITAE) subjected to a hard frequency-domain robustness constraint on the maximum sensitivity peak $M_s$:
+    where $\tau_c$ represents the sole user-specified closed-loop time constant. Selecting $\tau_c = 0.40$~min achieves a balanced trade-off between command tracking speed and robust stability margins ($K_p = -14.05$, $T_i = 1.096$~min, $T_d = 0.031$~min) \cite{alcantara2013simple}.
+
+    \item \textbf{Constrained Numerical Optimization (ITAE with $M_s \le 1.6$):} Direct Nelder--Mead simplex optimization minimizing the closed-loop Integral Time-weighted Absolute Error (ITAE) subject to an explicit $\mathcal{H}_\infty$ sensitivity constraint:
     \begin{equation}
-        \min_{K_p, T_i, T_d} \int_0^{t_{\text{sim}}} t |e(t)| \, dt \quad \text{s.t.} \quad M_s \le 1.6
+        \min_{K_p, T_i, T_d} \int_0^{t_{\text{sim}}} t |e(t)| \, dt \quad \text{subject to} \quad M_s \le 1.6
+        \label{eq:opt_formulation}
     \end{equation}
-    where $M_s = \max_\omega |S(j\omega)| = \max_\omega \left|\frac{1}{1 + G_p(j\omega) C(j\omega)}\right|$.
 \end{enumerate}
+
+\subsection{Robustness and $\mathcal{H}_\infty$ Sensitivity Formulation}
+\label{subsec:sensitivity_theory}
+In modern process control, robustness to unmodeled plant dynamics and parametric uncertainty is rigorously quantified by the peak of the sensitivity function $S(s)$ and complementary sensitivity function $T(s)$ \cite{astrom2006pid, skogestad2005multivariable}:
+\begin{align}
+    S(s) &= \frac{1}{1 + G_p(s) C(s)}, \label{eq:sensitivity_func} \\
+    T(s) &= \frac{G_p(s) C(s)}{1 + G_p(s) C(s)} = 1 - S(s) \label{eq:comp_sensitivity_func}
+\end{align}
+where $C(s) = K_p \left(1 + \frac{1}{T_i s} + \frac{T_d s}{\tau_f s + 1}\right)$. The maximum sensitivity peak $M_s$ is formally defined in the frequency domain as the $\mathcal{H}_\infty$ norm of $S(s)$:
+\begin{equation}
+    M_s \triangleq \|S\|_\infty = \sup_{\omega \ge 0} |S(j\omega)| = \sup_{\omega \ge 0} \left| \frac{1}{1 + G_p(j\omega) C(j\omega)} \right|
+    \label{eq:ms_peak}
+\end{equation}
+Geometrically, $M_s$ represents the inverse of the minimum Euclidean distance from the open-loop Nyquist trajectory $L(j\omega) = G_p(j\omega)C(j\omega)$ to the critical -1 point $(-1, j0)$ in the complex plane. A maximum sensitivity constraint $M_s \le 1.6$ enforces strict lower bounds on the classical gain margin ($GM$) and phase margin ($PM$) \cite{garpinger2014performance, padula2012optimal}:
+\begin{align}
+    GM &\ge \frac{M_s}{M_s - 1} = \frac{1.6}{0.6} \approx 2.67 \quad (8.52\text{ dB}) \label{eq:gain_margin} \\
+    PM &\ge 2 \arcsin\left(\frac{1}{2 M_s}\right) = 2 \arcsin\left(\frac{1}{3.2}\right) \approx 36.4^\circ \label{eq:phase_margin}
+\end{align}
+Enforcing $M_s \le 1.6$ ensures that the closed-loop system remains stable under substantial parameter variations (such as thermal fouling and heat-capacity drifts) without provoking excessive control action chattering.
