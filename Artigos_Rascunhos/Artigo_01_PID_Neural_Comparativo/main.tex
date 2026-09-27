@@ -17,6 +17,14 @@
 \usepackage{siunitx}
 \usepackage{cite}
 
+% ---- Spacing and Pagination Optimizations for Strict 8-Page IEEE Formatting ----
+\renewcommand{\arraystretch}{0.95}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{6pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\dbltextfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\dblfloatsep}{6pt plus 2pt minus 2pt}
+
 % ---- Metadados ----
 \title{Controllability Boundaries, Actuator Saturation, and Robustness Trade-offs in Classical PID Control of Highly Non-linear Exothermic CSTRs}
 
@@ -65,6 +73,17 @@ Chemical process control, CSTR, PID control, actuator saturation, anti-windup, S
 \input{sections/07_conclusion}
 
 % ============================================================
+% Compact bibliography item spacing to fit cleanly on page 8
+\let\oldthebibliography\thebibliography
+\let\endoldthebibliography\endthebibliography
+\renewenvironment{thebibliography}[1]{%
+  \begin{oldthebibliography}{#1}%
+    \setlength{\itemsep}{0.5pt plus 0.5pt minus 0.2pt}%
+    \setlength{\parskip}{0pt}%
+}{%
+  \end{oldthebibliography}%
+}
+
 \bibliographystyle{IEEEtran}
 \bibliography{references}
 
