@@ -56,6 +56,7 @@ class ClosedLoopSimulator:
         t_span: tuple[float, float],
         dt: float,
         setpoint_func: Callable[[float], float],
+        disturbance_func: Optional[Callable[[float], dict[str, float]]] = None,
         noise_std: float = 0.0,
         seed: Optional[int] = None,
     ) -> ClosedLoopResult:
@@ -68,6 +69,7 @@ class ClosedLoopSimulator:
             t_span: Tuple of (t_start, t_end) in minutes.
             dt: Sampling period in minutes.
             setpoint_func: Callable mapping time t -> setpoint temperature [K].
+            disturbance_func: Optional callable mapping time t -> dict of parameter overrides.
             noise_std: Standard deviation of sensor noise [K].
             seed: Optional seed for reproducible noise generation.
 
@@ -111,12 +113,14 @@ class ClosedLoopSimulator:
 
             # Advance plant state across interval dt
             if i < n_steps - 1:
+                dist = disturbance_func(t_now) if disturbance_func else None
                 current_state = self.integrator.step(
                     plant=plant,
                     current_state=current_state,
                     q_j=u_act,
                     t_current=t_now,
                     dt=dt,
+                    disturbances=dist,
                 )
 
         # Evaluate performance metrics across full trajectory
