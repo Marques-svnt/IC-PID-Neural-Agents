@@ -1,5 +1,5 @@
 % ============================================================
-%  Artigo 01 — PID Clássico vs. Neural: Comparação em CSTR
+%  Artigo 01 — A Comprehensive Benchmark on Classical PID Tuning Strategies
 %  IC/PROIC-UESC — Template para Overleaf
 %  Baseado no estilo IEEE Transactions
 % ============================================================
@@ -20,11 +20,10 @@
 \usepackage{cite}
 
 % ---- Metadados ----
-\title{Comparative Analysis of Classical PID Tuning Methods and Neural Network-Based 
-Adaptive Control Orchestrated by Autonomous Agents in Simulated Chemical Processes}
+\title{A Comprehensive Benchmark on Classical PID Tuning Strategies for Highly Non-linear CSTR: Robustness, Actuator Saturation, and Multi-Objective Trade-offs}
 
 \author{%
-  Autor1~\IEEEmembership{Student Member, UESC},
+  Gabriel Marques~\IEEEmembership{Student Member, UESC},
   Orientador~\IEEEmembership{Professor, UESC}%
   \thanks{Apoio: CNPq / FAPESB / PROIC-UESC. Edital 34/2026.}%
 }
@@ -35,22 +34,11 @@ Adaptive Control Orchestrated by Autonomous Agents in Simulated Chemical Process
 
 % ============================================================
 \begin{abstract}
-% TODO: Escrever abstract (150–250 palavras)
-% Deve cobrir: problema, abordagem, resultados principais, contribuição
-This paper presents a comparative analysis between classical PID tuning methods
-(Ziegler–Nichols, Cohen–Coon, Internal Model Control) and a neural network-based 
-adaptive PID controller orchestrated by an autonomous multi-agent system implemented 
-with LangGraph. The controllers are evaluated on a simulated non-isothermal 
-Continuous Stirred Tank Reactor (CSTR), a benchmark chemical process exhibiting 
-strong nonlinearities due to Arrhenius kinetics. Performance metrics including 
-Integral Absolute Error (IAE), Integral Time-weighted Absolute Error (ITAE), and 
-Total Variation (TV) of the manipulated variable are used for quantitative comparison 
-under setpoint tracking, load disturbance rejection, and parametric uncertainty scenarios.
+This paper presents an exhaustive comparative benchmark of classical Proportional-Integral-Derivative (PID) tuning methodologies applied to a simulated non-isothermal Continuous Stirred Tank Reactor (CSTR) characterized by severe Arrhenius non-linearities and realistic actuator saturation dynamics. Four classical tuning paradigms—Ziegler--Nichols (ZN), Cohen--Coon (CC), Skogestad Simple Internal Model Control (SIMC), and Constrained Numerical Optimization (ITAE with maximum sensitivity $M_s \le 1.6$)—are systematically evaluated across nominal setpoint tracking, unmeasured load disturbance rejection (feed temperature surge $\Delta T_f = +5$~K and concentration surge $\Delta C_{Af} = +20\%$), heat exchanger thermal fouling ($UA$ degradation from $100\%$ down to $60\%$), sensor measurement noise, and multi-operating point transitions. The results reveal that aggressive empirical formulas (ZN and CC) induce persistent valve saturation, thermal runaway risk, and destructive limit cycles. In contrast, Skogestad SIMC and Constrained Optimal ITAE maintain superior damping ($M_p \le 12\%$, $IAE < 1.8$) and robustly reject severe load disturbances while safeguarding the actuator. Furthermore, a Pareto frontier analysis maps the fundamental trade-off between tracking accuracy ($IAE$) and control effort ($TV$), establishing a rigorous empirical baseline for forthcoming investigations into adaptive neural and agent-based supervisory control.
 \end{abstract}
 
 \begin{IEEEkeywords}
-PID control, neural networks, adaptive control, multi-agent systems, LangGraph,
-CSTR, chemical process control, gain scheduling
+PID control, CSTR, chemical process control, Skogestad SIMC, actuator saturation, anti-windup, thermal fouling, Pareto optimization, robustness benchmark
 \end{IEEEkeywords}
 
 % ============================================================
@@ -64,27 +52,17 @@ CSTR, chemical process control, gain scheduling
 \input{sections/02_modeling}
 
 % ============================================================
-\section{Classical PID Tuning Methods}
+\section{Classical PID Tuning Architectures}
 \label{sec:pid}
 \input{sections/03_pid_classical}
 
 % ============================================================
-\section{Neural Network-Based Adaptive PID}
-\label{sec:neural}
-\input{sections/04_neural_pid}
-
-% ============================================================
-\section{Multi-Agent Orchestration with LangGraph}
-\label{sec:agents}
-\input{sections/05_multiagent}
-
-% ============================================================
-\section{Results and Discussion}
+\section{Simulation Results and Robustness Benchmark}
 \label{sec:results}
 \input{sections/06_results}
 
 % ============================================================
-\section{Conclusion}
+\section{Conclusion and Future Work}
 \label{sec:conclusion}
 \input{sections/07_conclusion}
 
