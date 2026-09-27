@@ -99,3 +99,5 @@ desktop.ini
 # Overleaf sync
 # ========================
 .overleaf/
+scripts/overleaf/.olauth
+
