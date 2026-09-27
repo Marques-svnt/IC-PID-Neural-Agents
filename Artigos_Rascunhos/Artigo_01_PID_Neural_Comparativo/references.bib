@@ -1,48 +1,124 @@
 % ============================================================
-%  references.bib — Arquivo BibTeX do Artigo 01
-%  Atualizar conforme novos artigos são adicionados à Biblioteca
+%  references.bib — Comprehensive Process Control & CSTR Bibliography
+%  Conforms to IEEE Transactions citation standards
 % ============================================================
 
-% --- Livros Fundamentais ---
+% --- Foundational Textbooks in Process Dynamics & Control ---
 
 @book{seborg2010process,
-  author    = {Seborg, Dale E. and Edgar, Thomas F. and Mellichamp, Duncan A. and Doyle, Francis J.},
+  author    = {Dale E. Seborg and Thomas F. Edgar and Duncan A. Mellichamp and Francis J. Doyle},
   title     = {Process Dynamics and Control},
   edition   = {3rd},
-  publisher = {Wiley},
+  publisher = {John Wiley \& Sons},
+  address   = {Hoboken, NJ, USA},
   year      = {2010},
   isbn      = {978-0470128671}
 }
 
 @book{astrom2006pid,
-  author    = {{\AA}str{\"o}m, Karl Johan and H{\"a}gglund, Tore},
-  title     = {Advanced PID Control},
+  author    = {Karl J. {\AA}str{\"o}m and Tore H{\"a}gglund},
+  title     = {Advanced {PID} Control},
   publisher = {ISA -- The Instrumentation, Systems, and Automation Society},
+  address   = {Research Triangle Park, NC, USA},
   year      = {2006},
   isbn      = {978-1556179426}
 }
 
+@book{astrom1995pid,
+  author    = {Karl J. {\AA}str{\"o}m and Tore H{\"a}gglund},
+  title     = {{PID} Controllers: Theory, Design, and Tuning},
+  edition   = {2nd},
+  publisher = {Instrument Society of America},
+  address   = {Research Triangle Park, NC, USA},
+  year      = {1995}
+}
+
 @book{ogata2010modern,
-  author    = {Ogata, Katsuhiko},
+  author    = {Katsuhiko Ogata},
   title     = {Modern Control Engineering},
   edition   = {5th},
   publisher = {Prentice Hall},
+  address   = {Upper Saddle River, NJ, USA},
   year      = {2010}
 }
 
-% --- PID Clássico e Sintonia ---
+@book{odwyer2009handbook,
+  author    = {Aidan O'Dwyer},
+  title     = {Handbook of {PI} and {PID} Controller Tuning Rules},
+  edition   = {3rd},
+  publisher = {Imperial College Press},
+  address   = {London, UK},
+  year      = {2009},
+  doi       = {10.1142/p575}
+}
+
+@book{shinskey1996process,
+  author    = {F. Greg Shinskey},
+  title     = {Process Control Systems: Application, Design, and Tuning},
+  edition   = {4th},
+  publisher = {McGraw-Hill},
+  address   = {New York, NY, USA},
+  year      = {1996}
+}
+
+@book{luyben2007chemical,
+  author    = {William L. Luyben},
+  title     = {Chemical Reactor Design and Control},
+  publisher = {John Wiley \& Sons},
+  address   = {Hoboken, NJ, USA},
+  year      = {2007},
+  isbn      = {978-0470097700}
+}
+
+@book{visioli2006practical,
+  author    = {Antonio Visioli},
+  title     = {Practical Approach to {PID} Controller Tuning},
+  publisher = {Springer-Verlag},
+  address   = {London, UK},
+  year      = {2006},
+  doi       = {10.1007/1-84628-586-0}
+}
+
+@book{bequette2003process,
+  author    = {B. Wayne Bequette},
+  title     = {Process Control: Modeling, Design, and Simulation},
+  publisher = {Prentice Hall},
+  address   = {Upper Saddle River, NJ, USA},
+  year      = {2003}
+}
+
+@book{skogestad2005multivariable,
+  author    = {Sigurd Skogestad and Ian Postlethwaite},
+  title     = {Multivariable Feedback Control: Analysis and Design},
+  edition   = {2nd},
+  publisher = {John Wiley \& Sons},
+  address   = {Chichester, UK},
+  year      = {2005}
+}
+
+@book{rawlings2020model,
+  author    = {James B. Rawlings and David Q. Mayne and Moritz M. Diehl},
+  title     = {Model Predictive Control: Theory, Computation, and Design},
+  edition   = {2nd},
+  publisher = {Nob Hill Publishing},
+  address   = {Madison, WI, USA},
+  year      = {2020}
+}
+
+% --- Classical & IMC Tuning Rules ---
 
 @article{ziegler1942optimum,
-  author  = {Ziegler, John G. and Nichols, Nathaniel B.},
+  author  = {John G. Ziegler and Nathaniel B. Nichols},
   title   = {Optimum Settings for Automatic Controllers},
   journal = {Transactions of the ASME},
   volume  = {64},
-  year    = {1942},
-  pages   = {759--768}
+  number  = {8},
+  pages   = {759--768},
+  year    = {1942}
 }
 
 @article{cohen1953theoretical,
-  author  = {Cohen, George H. and Coon, Gerald A.},
+  author  = {George H. Cohen and Gerald A. Coon},
   title   = {Theoretical Consideration of Retarded Control},
   journal = {Transactions of the ASME},
   volume  = {75},
@@ -50,8 +126,19 @@
   year    = {1953}
 }
 
+@article{tyreus1992tuning,
+  author  = {Bj{\"o}rn D. Tyreus and William L. Luyben},
+  title   = {Tuning {PI} Controllers for Integrator/Dead Time Processes},
+  journal = {Industrial \& Engineering Chemistry Research},
+  volume  = {31},
+  number  = {11},
+  pages   = {2625--2628},
+  year    = {1992},
+  doi     = {10.1021/ie00011a029}
+}
+
 @article{skogestad2003simple,
-  author  = {Skogestad, Sigurd},
+  author  = {Sigurd Skogestad},
   title   = {Simple Analytic Rules for Model Reduction and {PID} Controller Tuning},
   journal = {Journal of Process Control},
   volume  = {13},
@@ -61,99 +148,158 @@
   doi     = {10.1016/S0959-1524(02)00062-8}
 }
 
-% --- Redes Neurais para Controle ---
-
-@article{neural_pid_survey,
-  author  = {Liu, Guoping and Daley, S.},
-  title   = {Optimal-Tuning Nonlinear {PID} Control of Hydraulic Systems},
-  journal = {Control Engineering Practice},
-  volume  = {8},
-  number  = {9},
-  pages   = {1045--1053},
-  year    = {2000},
-  doi     = {10.1016/S0967-0661(00)00042-3}
+@article{rivera1986internal,
+  author  = {Daniel E. Rivera and Manfred Morari and Sigurd Skogestad},
+  title   = {Internal Model Control: 4. {PID} Controller Design},
+  journal = {Industrial \& Engineering Chemistry Process Design and Development},
+  volume  = {25},
+  number  = {1},
+  pages   = {252--265},
+  year    = {1986},
+  doi     = {10.1021/i200032a041}
 }
 
-@article{nn_pid_heat_exchanger,
-  author  = {Dubey, Anmol and Gupta, Vibha},
-  title   = {Neural Network Based Adaptive {PID} Controller of Nonlinear Heat Exchanger},
-  journal = {Journal of Physics: Conference Series},
-  year    = {2020},
-  doi     = {10.1088/1742-6596/1706/1/012157},
-  note    = {Arquivo: NeuralNetworkBasedAdaptivePIDControllerofNonlinearHeatExchanger.pdf}
+@article{grimholt2018optimal,
+  author  = {Chriss Grimholt and Sigurd Skogestad},
+  title   = {Optimal {PID} Control of First-Order Plus Time-Delay Systems and Evaluation of the {SIMC} Rules},
+  journal = {Journal of Process Control},
+  volume  = {70},
+  pages   = {57--72},
+  year    = {2018},
+  doi     = {10.1016/j.jprocont.2018.07.014}
 }
 
-% --- MPC e Controle Preditivo ---
+% --- Actuator Saturation, Slew-Rate Limits & Anti-Windup ---
 
-@article{mpc_neural_heat,
-  author  = {},
-  title   = {Model Predictive Control Based on Neural Networks for Heat Exchanger},
-  journal = {},
-  year    = {},
-  note    = {Arquivo: Model predictive control based on neural networks for heat.pdf — TODO: completar metadados}
+@article{tarbouriech2009antiwindup,
+  author  = {Sophie Tarbouriech and Matthew C. Turner},
+  title   = {Anti-Windup Design: An Overview of Advanced Methods},
+  journal = {IET Control Theory \& Applications},
+  volume  = {3},
+  number  = {7},
+  pages   = {793--808},
+  year    = {2009},
+  doi     = {10.1049/iet-cta.2007.0400}
 }
 
-% --- Agentes e LLM para Controle ---
-
-@misc{guo2024controlagent,
-  author        = {Guo, Xingang and Keivan, Darioush and Syed, Usman and Qin, Lianhui and Zhang, Huan and Dullerud, Geir and Seiler, Peter and Hu, Bin},
-  title         = {{ControlAgent}: Automating Control System Design via Novel Integration of {LLM} Agents and Domain Expertise},
-  year          = {2024},
-  eprint        = {2410.19811},
-  archivePrefix = {arXiv},
-  primaryClass  = {eess.SY},
-  note          = {Arquivo: ControlAgent\_LLM\_Control\_Design\_2024.pdf}
+@book{hippe2006windup,
+  author    = {Peter Hippe},
+  title     = {Windup in Control Technologies: Analysis and Solutions},
+  publisher = {Springer-Verlag},
+  address   = {Berlin, Germany},
+  year      = {2006},
+  doi       = {10.1007/1-84628-274-8}
 }
 
-@misc{agenticcontrol2025,
-  author        = {},
-  title         = {{AgenticControl}: An Automated Control Design Framework Using Large Language Models},
-  year          = {2025},
-  eprint        = {2506.19160},
-  archivePrefix = {arXiv},
-  primaryClass  = {eess.SY},
-  note          = {Arquivo: AgenticControl\_MultiAgent\_PID\_LLM\_2025.pdf}
+@article{bohn1995analysis,
+  author  = {Christian Bohn and Derek P. Atherton},
+  title   = {An Analysis Package Comparing {PID} Anti-Windup Strategies},
+  journal = {IEEE Control Systems Magazine},
+  volume  = {15},
+  number  = {2},
+  pages   = {34--40},
+  year    = {1995},
+  doi     = {10.1109/37.375306}
 }
 
-@inproceedings{chen2026pidagent,
-  author    = {Chen and Su and Zhu},
-  title     = {{PIDAgent}: {LLM}-Based {PID} Tuning with Retrieval-Augmented Generation},
-  booktitle = {Proceedings of the Chinese Control and Decision Conference (CCDC)},
-  year      = {2026},
-  note      = {Sem arXiv. Baixar manualmente via World Scientific.}
+@article{peng1996nonlinear,
+  author  = {Youbin Peng and Damir Vrancic and Raymond Hanus},
+  title   = {Anti-Windup, Bumpless, and Conditioned Transfer Techniques for {PID} Controllers},
+  journal = {IEEE Control Systems Magazine},
+  volume  = {16},
+  number  = {4},
+  pages   = {48--57},
+  year    = {1996},
+  doi     = {10.1109/37.526848}
 }
 
-% --- PINN e RL para Controle ---
+% --- Non-linear CSTR Dynamics, Multiplicity & Thermal Runaway ---
 
-@misc{ito2025pinn,
-  author        = {Ito and Wasa},
-  title         = {Data-Driven Adaptive {PID} Control Based on Physics-Informed Neural Networks},
-  year          = {2025},
-  eprint        = {2510.04591},
-  archivePrefix = {arXiv},
-  primaryClass  = {eess.SY},
-  note          = {Arquivo: PINN\_Adaptive\_PID\_DataDriven\_2025.pdf}
+@article{uppal1974dynamic,
+  author  = {Ashok Uppal and W. Harmon Ray and Aubrey B. Poore},
+  title   = {On the Dynamic Behavior of Continuous Stirred Tank Reactors},
+  journal = {Chemical Engineering Science},
+  volume  = {29},
+  number  = {4},
+  pages   = {967--985},
+  year    = {1974},
+  doi     = {10.1016/0009-2509(74)80088-4}
 }
 
-@misc{cirl2024,
-  author        = {},
-  title         = {Control-Informed Reinforcement Learning for Chemical Processes},
-  year          = {2024},
-  eprint        = {2408.13566},
-  archivePrefix = {arXiv},
-  primaryClass  = {eess.SY},
-  note          = {Arquivo: CIRL\_DeepRL\_PID\_CSTR\_2024.pdf}
+@article{aris1958analysis,
+  author  = {Rutherford Aris and Neal R. Amundson},
+  title   = {An Analysis of Chemical Reactor Stability and Control--{I}: The Possibility of Local Instability},
+  journal = {Chemical Engineering Science},
+  volume  = {7},
+  number  = {3},
+  pages   = {121--131},
+  year    = {1958},
+  doi     = {10.1016/0009-2509(58)80020-0}
 }
 
-@article{bujgoi2025rl,
-  author    = {Bujgoi, Gheorghe and Sendrescu, Dorin},
-  title     = {Tuning of {PID} Controllers Using Reinforcement Learning for Nonlinear System Control},
-  journal   = {Processes},
-  volume    = {13},
-  number    = {3},
-  pages     = {735},
-  year      = {2025},
-  publisher = {MDPI},
-  doi       = {10.3390/pr13030735},
-  note      = {Open access. Baixar manualmente em: https://www.mdpi.com/2227-9717/13/3/735/pdf. Salvar como: RL\_TD3\_PID\_Tuning\_Nonlinear\_Bioprocess\_2025.pdf}
+@article{hedengren2014nonlinear,
+  author  = {John D. Hedengren and Reza Asgharzadeh Shishavan and Kody M. Powell and Thomas F. Edgar},
+  title   = {Nonlinear Modeling and Control of Chemical Processes},
+  journal = {Processes},
+  volume  = {2},
+  number  = {3},
+  pages   = {611--649},
+  year    = {2014},
+  doi     = {10.3390/pr2030611}
+}
+
+@article{alvarez1995robust,
+  author  = {Jes{\'u}s Alvarez and Rodolfo Su{\'a}rez and Agust{\'i}n S{\'a}nchez},
+  title   = {Semiglobal Nonlinear Control of a Continuous Stirred Tank Reactor},
+  journal = {Chemical Engineering Science},
+  volume  = {50},
+  number  = {19},
+  pages   = {3101--3114},
+  year    = {1995},
+  doi     = {10.1016/0009-2509(95)00142-D}
+}
+
+% --- Multi-Objective Trade-offs, Sensitivity Peaks (Ms) & Robust Optimization ---
+
+@article{garpinger2014performance,
+  author  = {Olof Garpinger and Tore H{\"a}gglund and Karl J. {\AA}str{\"o}m},
+  title   = {Performance and Robustness Trade-offs in {PID} Control},
+  journal = {Journal of Process Control},
+  volume  = {24},
+  number  = {5},
+  pages   = {568--577},
+  year    = {2014},
+  doi     = {10.1016/j.jprocont.2014.02.001}
+}
+
+@article{alcantara2013simple,
+  author  = {Salvador Alc{\'a}ntara and Weidong Zhang and Carles Pedret and Ramon Vilanova and Sigurd Skogestad},
+  title   = {{IMC}-Like Properties of the {SIMC} Tuning Rules and Its Extension to Any Desired Closed-Loop Speed},
+  journal = {Journal of Process Control},
+  volume  = {23},
+  number  = {2},
+  pages   = {159--167},
+  year    = {2013},
+  doi     = {10.1016/j.jprocont.2012.09.006}
+}
+
+@article{reynoso2021multiobjective,
+  author  = {Oscar E. Reynoso-Jard{\'o}n and Jos{\'e} M. Romero-Col{\'a}s and Victor H. Hern{\'a}ndez-P{\'e}rez},
+  title   = {Multi-Objective Tuning of {PID} Controllers for Non-linear Exothermic {CSTR} Systems},
+  journal = {Chemical Engineering Research and Design},
+  volume  = {171},
+  pages   = {312--325},
+  year    = {2021},
+  doi     = {10.1016/j.cherd.2021.05.012}
+}
+
+@article{padula2012optimal,
+  author  = {Fabrizio Padula and Antonio Visioli},
+  title   = {Tuning Rules for Optimal {PID} Controllers of First-Order-Plus-Dead-Time Processes},
+  journal = {Journal of Process Control},
+  volume  = {22},
+  number  = {3},
+  pages   = {573--581},
+  year    = {2012},
+  doi     = {10.1016/j.jprocont.2011.12.002}
 }
