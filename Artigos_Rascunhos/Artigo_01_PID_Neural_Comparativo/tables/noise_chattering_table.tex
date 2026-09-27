@@ -1,0 +1,31 @@
+\begin{table}[htbp]
+\centering
+\caption{Sensitivity of tracking error (IAE) and actuator effort (TV) to measurement noise levels across $5$ Monte Carlo runs.}
+\label{tab:noise_sensitivity}
+\begin{tabular}{lccc}
+\toprule
+Method & Noise $\sigma$ (K) & IAE (mean $\pm$ std) & TV (L/min) \\
+\midrule
+Ziegler-Nichols & 0.0 & 95.78 $\pm$ 0.00 & 491.9 $\pm$ 0.0 \\
+Ziegler-Nichols & 0.1 & 95.48 $\pm$ 0.74 & 528.4 $\pm$ 6.4 \\
+Ziegler-Nichols & 0.2 & 95.95 $\pm$ 1.69 & 521.9 $\pm$ 24.2 \\
+Ziegler-Nichols & 0.5 & 96.09 $\pm$ 3.24 & 512.4 $\pm$ 51.8 \\
+Ziegler-Nichols & 1.0 & 96.47 $\pm$ 5.42 & 576.3 $\pm$ 79.3 \\
+Cohen-Coon & 0.0 & 94.33 $\pm$ 0.00 & 478.4 $\pm$ 0.0 \\
+Cohen-Coon & 0.1 & 94.42 $\pm$ 0.68 & 519.6 $\pm$ 12.9 \\
+Cohen-Coon & 0.2 & 94.44 $\pm$ 0.31 & 500.3 $\pm$ 15.7 \\
+Cohen-Coon & 0.5 & 95.50 $\pm$ 1.74 & 498.6 $\pm$ 50.0 \\
+Cohen-Coon & 1.0 & 97.12 $\pm$ 7.14 & 542.0 $\pm$ 60.2 \\
+Skogestad SIMC & 0.0 & 1.11 $\pm$ 0.00 & 22.5 $\pm$ 0.0 \\
+Skogestad SIMC & 0.1 & 1.78 $\pm$ 0.04 & 600.9 $\pm$ 7.9 \\
+Skogestad SIMC & 0.2 & 2.52 $\pm$ 0.05 & 689.4 $\pm$ 3.4 \\
+Skogestad SIMC & 0.5 & 4.86 $\pm$ 0.06 & 749.1 $\pm$ 4.5 \\
+Skogestad SIMC & 1.0 & 8.83 $\pm$ 0.10 & 773.3 $\pm$ 4.3 \\
+Optimal ITAE ($M_s \leq 1.6$) & 0.0 & 0.90 $\pm$ 0.00 & 46.6 $\pm$ 0.0 \\
+Optimal ITAE ($M_s \leq 1.6$) & 0.1 & 1.60 $\pm$ 0.06 & 626.5 $\pm$ 10.6 \\
+Optimal ITAE ($M_s \leq 1.6$) & 0.2 & 2.41 $\pm$ 0.08 & 706.6 $\pm$ 6.4 \\
+Optimal ITAE ($M_s \leq 1.6$) & 0.5 & 4.80 $\pm$ 0.12 & 760.1 $\pm$ 5.8 \\
+Optimal ITAE ($M_s \leq 1.6$) & 1.0 & 8.90 $\pm$ 0.19 & 772.5 $\pm$ 6.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
