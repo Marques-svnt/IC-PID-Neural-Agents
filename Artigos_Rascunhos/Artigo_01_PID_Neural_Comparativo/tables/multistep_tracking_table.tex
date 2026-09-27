@@ -1,11 +1,11 @@
 \begin{table}[htbp]
 \centering
-\caption{Multi-operating point tracking across moderate (390~K), nominal (396.65~K), and highly exothermic (402~K) reaction regimes. Actuator constraints are strictly enforced within $[u_{\min}, u_{\max}] = [0.0, 300.0]$~L/min (peak flow $\max(q_j) = 183.9$~L/min for Optimal ITAE); Total Variation ($\mathrm{TV} = \sum |\Delta q_j|$) quantifies cumulative valve travel over the 30-min horizon.}
+\caption{Multi-operating point tracking across moderate (390~K), nominal (396.65~K), and highly exothermic (402~K) reaction regimes.}
 \label{tab:multistep_tracking}
 \resizebox{\columnwidth}{!}{%
 \begin{tabular}{lccccc}
 \toprule
-Method & Total IAE & Total ITAE & TV (L/min) & $\max(q_j)$ (L/min) & $\min(q_j)$ (L/min) \\
+Method & Total IAE & Total ITAE & Total TV (L/min) & Max Valve (L/min) & Min Valve (L/min) \\
 \midrule
 Ziegler-Nichols & 352.64 & 5363.35 & 507.9 & 300.0 & 88.1 \\
 Cohen-Coon & 585.43 & 10274.09 & 792.9 & 300.0 & 0.0 \\
