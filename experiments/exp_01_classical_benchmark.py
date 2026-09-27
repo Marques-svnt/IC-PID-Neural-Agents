@@ -28,6 +28,12 @@ from src.classical_control.tuning_optimization import (
     calculate_maximum_sensitivity,
     tune_by_optimization,
 )
+from src.evaluation.plot_styles import (
+    IEEE_LINESTYLES,
+    IEEE_PALETTE,
+    get_figure_dimensions,
+    setup_ieee_style,
+)
 from src.sim_core.actuators import ActuatorLimits
 from src.sim_core.cstr_plant import CSTRPlant
 from src.sim_core.integrator import NumericalIntegrator
@@ -141,7 +147,11 @@ def run_benchmark() -> None:
             "ITAE": f"{res.metrics.itae:.2f}",
             "TV (L/min)": f"{res.metrics.tv:.1f}",
             "$M_p$ (\\%)": f"{res.metrics.overshoot_pct:.1f}",
-            "$t_s$ (min)": f"{res.metrics.settling_time:.2f}" if res.metrics.settling_time else "N/A",
+            "$t_s$ (min)": (
+                f"{res.metrics.settling_time:.2f}"
+                if res.metrics.settling_time is not None
+                else "N/A"
+            ),
             "$M_s$": f"{ms:.2f}",
         })
 
@@ -158,50 +168,64 @@ def run_benchmark() -> None:
 \\centering
 \\caption{{Comparative performance benchmark of classical PID tuning methods on non-linear CSTR.}}
 \\label{{tab:classical_benchmark}}
+\\resizebox{{\\columnwidth}}{{!}}{{%
 \\begin{{tabular}}{{{col_align}}}
 \\toprule
 {cols} \\\\
 \\midrule
 {rows_str}
 \\bottomrule
-\\end{{tabular}}
+\\end{{tabular}}%
+}}
 \\end{{table}}
 """
     table_file = tables_dir / "benchmark_table.tex"
     table_file.write_text(latex_table, encoding="utf-8")
     logger.info("Saved LaTeX table to: %s", table_file)
 
-    # 5. Plot Publication-Quality Figures
-    available_styles = plt.style.available
-    style = "seaborn-v0_8-whitegrid" if "seaborn-v0_8-whitegrid" in available_styles else "default"
-    plt.style.use(style)
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(8.5, 6.5), sharex=True, dpi=300)
+    # 5. Plot Publication-Quality Figures (IEEE Single-Column Standard)
+    setup_ieee_style(single_column=True)
+    fig_w, fig_h = get_figure_dimensions(columns=1, height_override=3.6)
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(fig_w, fig_h), sharex=True, dpi=300)
 
     # Plot setpoint
     sample_res = next(iter(sim_results.values()))
     ax1.plot(
-        sample_res.t, sample_res.setpoint, "k--", label="Setpoint (SP)", linewidth=1.5, alpha=0.8
+        sample_res.t,
+        sample_res.setpoint,
+        color=IEEE_PALETTE["Setpoint"],
+        linestyle=IEEE_LINESTYLES["Setpoint"],
+        label="Setpoint ($T_{sp}$)",
+        linewidth=1.2,
     )
 
-    colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
-    for (name, res), color in zip(sim_results.items(), colors):
-        ax1.plot(res.t, res.t_pv, label=name, color=color, linewidth=1.8)
-        ax2.plot(res.t, res.u_applied, label=name, color=color, linewidth=1.8)
+    for name, res in sim_results.items():
+        color = IEEE_PALETTE.get(name, "#333333")
+        linestyle = IEEE_LINESTYLES.get(name, "-")
+        ax1.plot(res.t, res.t_pv, label=name, color=color, linestyle=linestyle, linewidth=1.2)
+        ax2.plot(res.t, res.u_applied, label=name, color=color, linestyle=linestyle, linewidth=1.2)
 
-    ax1.set_ylabel("Reactor Temperature $T$ (K)", fontsize=11)
-    ax1.legend(loc="lower right", frameon=True, fontsize=9)
-    ax1.set_title(
-        "Classical PID Benchmark: Setpoint Tracking in Non-linear CSTR",
-        fontsize=12,
-        fontweight="bold",
-    )
+    ax1.set_ylabel("Reactor Temp. $T$ (K)", fontsize=8.5)
+    ax1.legend(loc="lower right", frameon=True, fontsize=6.8, framealpha=0.9)
+    ax1.set_title("Classical PID Benchmark: Setpoint Tracking", fontsize=9.0)
     ax1.grid(True, linestyle=":", alpha=0.6)
 
-    ax2.axhline(limits.u_max, color="red", linestyle=":", label="Valve Limits ($u_{min}, u_{max}$)")
-    ax2.axhline(limits.u_min, color="red", linestyle=":")
-    ax2.set_ylabel("Coolant Flow $q_j$ (L/min)", fontsize=11)
-    ax2.set_xlabel("Time $t$ (min)", fontsize=11)
-    ax2.legend(loc="upper right", frameon=True, fontsize=9)
+    ax2.axhline(
+        limits.u_max,
+        color=IEEE_PALETTE["Constraint"],
+        linestyle=IEEE_LINESTYLES["Constraint"],
+        label="Limits ($u_{\\min}, u_{\\max}$)",
+        linewidth=1.0,
+    )
+    ax2.axhline(
+        limits.u_min,
+        color=IEEE_PALETTE["Constraint"],
+        linestyle=IEEE_LINESTYLES["Constraint"],
+        linewidth=1.0,
+    )
+    ax2.set_ylabel("Coolant Flow $q_j$ (L/min)", fontsize=8.5)
+    ax2.set_xlabel("Time $t$ (min)", fontsize=8.5)
+    ax2.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax2.grid(True, linestyle=":", alpha=0.6)
 
     plt.tight_layout()
