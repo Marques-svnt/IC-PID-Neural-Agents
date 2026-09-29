@@ -1,4 +1,27 @@
-"""Mathematical performance criteria for closed-loop benchmark analysis."""
+# %% [Módulo e Importações]
+"""Critérios matemáticos de desempenho quantitativo para análise de controle de processos.
+
+Implementa a avaliação numérica de índices canônicos no domínio do tempo e de esforço
+de controle para sistemas de controle clássico, neural e baseado em agentes:
+    1. IAE (Integral do Erro Absoluto):
+       IAE = integral |e(t)| dt
+       Quantifica a área total de desvio do setpoint ao longo do horizonte temporal.
+    2. ITAE (Integral do Erro Absoluto Ponderado no Tempo):
+       ITAE = integral t * |e(t)| dt
+       Penaliza com severidade oscilações tardias e acomodação lenta.
+    3. ISE (Integral do Erro Quadrático):
+       ISE = integral e(t)^2 dt
+       Penaliza severamente grandes transientes e picos de erro iniciais.
+    4. TV (Variação Total da Ação de Controle):
+       TV = sum |u_k - u_{k-1}|
+       Métrica fundamental que quantifica a suavidade e o desgaste físico da válvula.
+    5. Sobressinal Percentual (Overshoot / Mp):
+       Mp = max(0, (y_pico - SP) / Delta_SP) * 100%
+    6. Tempo de Acomodação (Settling Time - ts):
+       Tempo a partir do qual a variável de processo permanece dentro de +/- 2% do degrau.
+    7. Tempo de Subida (Rise Time - tr):
+       Tempo necessário para a resposta transitar de 10% a 90% do valor final.
+"""
 
 import logging
 from dataclasses import dataclass
@@ -9,18 +32,19 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
+# %% [Estrutura de Métricas de Desempenho de Controle]
 @dataclass(frozen=True)
 class ControlPerformanceMetrics:
-    """Benchmark quantitative evaluation metrics for control loop performance.
+    """Conjunto padronizado de métricas quantitativas de desempenho em malha fechada.
 
     Attributes:
-        iae: Integral of Absolute Error (total tracking deviation).
-        itae: Integral of Time-weighted Absolute Error (penalizes lingering oscillations).
-        ise: Integral of Squared Error (penalizes large transients).
-        tv: Total Variation of the control action (actuator wear metric).
-        overshoot_pct: Maximum peak overshoot percentage [%].
-        settling_time: Time taken to enter and remain within +/- 2% band [min].
-        rise_time: Time taken to rise from 10% to 90% of setpoint step [min].
+        iae: Integral do Erro Absoluto [unidade_PV * min].
+        itae: Integral do Erro Absoluto Ponderado no Tempo [unidade_PV * min^2].
+        ise: Integral do Erro Quadrático [unidade_PV^2 * min].
+        tv: Variação Total do sinal de controle manipulado [unidade_MV].
+        overshoot_pct: Sobressinal percentual máximo de ultrapassagem [%].
+        settling_time: Tempo de acomodação para a faixa de tolerância de +/- 2% [min].
+        rise_time: Tempo de subida entre 10% e 90% da transição de referência [min].
     """
 
     iae: float
@@ -32,6 +56,7 @@ class ControlPerformanceMetrics:
     rise_time: Optional[float]
 
 
+# %% [Função de Cálculo Numérico das Métricas]
 def evaluate_performance(
     t: np.ndarray,
     y: np.ndarray,
@@ -39,20 +64,23 @@ def evaluate_performance(
     u: np.ndarray,
     settling_band: float = 0.02,
 ) -> ControlPerformanceMetrics:
-    """Computes standard academic and industrial control performance criteria.
+    """Calcula os índices quantitativos de rastreamento e esforço de controle.
+
+    Utiliza a regra dos trapézios para integração numérica dos erros temporais
+    e busca linear para determinação dos tempos característicos da resposta transitória.
 
     Args:
-        t: Array of time points [min] (monotonically increasing).
-        y: Array of controlled process variable values (PV).
-        setpoint: Array of target setpoint values (SP).
-        u: Array of manipulated control actions (MV).
-        settling_band: Fractional band for settling time calculation (default 2% or 0.02).
+        t: Vetor 1D de tempo estritamente monótono crescente [min].
+        y: Vetor 1D de valores da variável de processo controlada (PV).
+        setpoint: Vetor 1D contendo os valores de referência desejados (SP).
+        u: Vetor 1D da ação manipulada entregue pelo elemento final de controle (MV).
+        settling_band: Fração de tolerância para o tempo de acomodação (padrão 2% ou 0.02).
 
     Returns:
-        Populated ControlPerformanceMetrics dataclass.
+        ControlPerformanceMetrics: Estrutura consolidada com todas as métricas calculadas.
 
     Raises:
-        ValueError: If array dimensions do not match or have fewer than 2 elements.
+        ValueError: Caso os vetores possuam dimensões incompatíveis ou menos de 2 pontos.
     """
     n = len(t)
     if not (len(y) == len(setpoint) == len(u) == n):
@@ -66,15 +94,15 @@ def evaluate_performance(
     error = setpoint - y
     abs_error = np.abs(error)
 
-    # Trapezoidal numerical integration for time-domain criteria
+    # 1. Integração Numérica Trapezoidal dos Índices Temporais de Erro
     iae = float(np.sum(0.5 * (abs_error[:-1] + abs_error[1:]) * dt))
     itae = float(np.sum(0.5 * (t[:-1] * abs_error[:-1] + t[1:] * abs_error[1:]) * dt))
     ise = float(np.sum(0.5 * (error[:-1] ** 2 + error[1:] ** 2) * dt))
 
-    # Total Variation (TV) of control effort: TV = sum |u_k - u_{k-1}|
+    # 2. Variação Total (TV) da Ação Manipulada: TV = sum |u_k - u_{k-1}|
     tv = float(np.sum(np.abs(np.diff(u))))
 
-    # Overshoot calculation
+    # 3. Cálculo de Sobressinal (Overshoot Percentual)
     sp_final = setpoint[-1]
     y_init = y[0]
     step_amplitude = abs(sp_final - y_init)
@@ -89,19 +117,19 @@ def evaluate_performance(
     else:
         overshoot = 0.0
 
-    # Settling time (time after which |y - sp_final| <= band * step_amplitude)
+    # 4. Tempo de Acomodação (Settling Time para faixa de +/- 2%)
     settling_threshold = max(settling_band * step_amplitude, 1e-4)
     outside_band_indices = np.where(np.abs(y - sp_final) > settling_threshold)[0]
 
     if len(outside_band_indices) == 0:
         settling_time = float(t[0])
     elif outside_band_indices[-1] == n - 1:
-        # Never settled inside the band
+        # A resposta não permaneceu dentro da faixa até o término da janela temporal
         settling_time = None
     else:
         settling_time = float(t[outside_band_indices[-1] + 1])
 
-    # Rise time (10% to 90% of transition)
+    # 5. Tempo de Subida (Rise Time entre 10% e 90% da transição)
     rise_time: Optional[float] = None
     if step_amplitude > 1e-6:
         val_10 = y_init + 0.10 * (sp_final - y_init)
@@ -118,7 +146,7 @@ def evaluate_performance(
             rise_time = float(t[idx_90[0]] - t[idx_10[0]])
 
     logger.debug(
-        "Performance calculated: IAE=%.3f, ITAE=%.3f, TV=%.3f, Overshoot=%.1f%%",
+        "Métricas calculadas: IAE=%.3f, ITAE=%.3f, TV=%.3f, Overshoot=%.1f%%",
         iae,
         itae,
         tv,
@@ -134,3 +162,44 @@ def evaluate_performance(
         settling_time=settling_time,
         rise_time=rise_time,
     )
+
+
+# %% [Bloco de Execução Interativa / Demonstração no Spyder]
+if __name__ == "__main__":
+    print("=" * 70)
+    print("DEMONSTRAÇÃO INTERATIVA SPYDER 6: Métricas de Controle de Processos")
+    print("=" * 70)
+
+    # Criação de resposta sintética subamortecida (segunda ordem) ao degrau de setpoint
+    t_demo = np.linspace(0.0, 10.0, 501)
+    sp_demo = np.full_like(t_demo, 348.0)  # Degrau de 350 K para 348 K (amplitude = 2 K)
+    y_init = 350.0
+
+    # Resposta analítica: y(t) = 348 + 2 * exp(-0.8*t) * (cos(2*t) + 0.4*sin(2*t))
+    y_demo = 348.0 + 2.0 * np.exp(-0.8 * t_demo) * (
+        np.cos(2.0 * t_demo) + 0.4 * np.sin(2.0 * t_demo)
+    )
+    # Sinal de controle suave de atuação
+    u_demo = 100.0 + 15.0 * (1.0 - np.exp(-t_demo / 1.5))
+
+    metrics = evaluate_performance(
+        t=t_demo,
+        y=y_demo,
+        setpoint=sp_demo,
+        u=u_demo,
+        settling_band=0.02,
+    )
+
+    print("\n[Métricas de Desempenho Calculadas]:")
+    print(f"  IAE  (Integral do Erro Absoluto):           {metrics.iae:.4f} K·min")
+    print(f"  ITAE (Erro Absoluto Ponderado no Tempo):    {metrics.itae:.4f} K·min²")
+    print(f"  ISE  (Integral do Erro Quadrático):         {metrics.ise:.4f} K²·min")
+    print(f"  TV   (Variação Total da Ação u):            {metrics.tv:.4f} L/min")
+    print(f"  Mp   (Sobressinal Máximo):                  {metrics.overshoot_pct:.2f} %")
+    ts_val = f"{metrics.settling_time:.2f} min" if metrics.settling_time else "N/A"
+    print(f"  ts   (Tempo de Acomodação +/- 2%):          {ts_val}")
+    tr_val = f"{metrics.rise_time:.2f} min" if metrics.rise_time else "N/A"
+    print(f"  tr   (Tempo de Subida 10%-90%):             {tr_val}")
+
+    print("\nDemonstração de métricas de controle concluída com sucesso no Spyder 6.")
+    print("=" * 70)
