@@ -22,6 +22,14 @@ Biblioteca/
 
 ---
 
+## 📁 00 — Teses e Relatórios Técnicos do Projeto (PROIC/UESC)
+
+| # | Arquivo | Título | Autor / Orientador | Ano | Descrição / Contribuição |
+|---|---|---|---|---|---|
+| **0** | [`../Artigos_Rascunhos/Tese.pdf`](../Artigos_Rascunhos/Tese.pdf) | **Contornabilidade, Saturação de Atuador e Trade-offs de Robustez no Controle PID Clássico de CSTRs Exotérmicos Altamente Não Lineares** | Gabriel Marques de Andrade (Orientador: Prof. Dr. Elilton Rodrigues Edwards) | 2026 | Relatório técnico-científico final PROIC/UESC/FAPESB/CNPq (Edital 34/2026). 39 páginas de fundamentação teórica rigorosa, modelagem fenomenológica CSTR, análise de Van Heerden, formulação de anti-windup clamping, identificação FOPTD, sintonia e construção da fronteira de Pareto contínua. |
+
+---
+
 ## 📁 01 — PID Clássico
 
 | # | Arquivo | Título | Ano | Palavras-chave | Notas |
