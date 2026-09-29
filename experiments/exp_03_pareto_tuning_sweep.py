@@ -78,15 +78,15 @@ def export_latex_table(
 \\centering
 \\caption{{{caption}}}
 \\label{{{label}}}
-\\footnotesize
-\\setlength{{\\tabcolsep}}{{2.5pt}}
+\\resizebox{{\\columnwidth}}{{!}}{{%
 \\begin{{tabular}}{{{col_align}}}
 \\toprule
 {cols} \\\\
 \\midrule
 {rows_str}
 \\bottomrule
-\\end{{tabular}}
+\\end{{tabular}}%
+}}
 \\end{{table}}
 """
     output_path.write_text(latex_code, encoding="utf-8")
