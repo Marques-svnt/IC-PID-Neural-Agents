@@ -2,11 +2,12 @@
 ## Artigo 1: Benchmark Abrangente de Sintonias PID em Reator CSTR Não-Linear
 
 > **Projeto de Iniciação Científica (PROIC)**  
-> **Instituição:** Universidade Estadual de Santa Cruz (UESC) — Departamento de Ciências Exatas e Tecnológicas (DCET)  
-> **Orientador:** Prof. Dr. [Nome do Orientador]  
-> **Pesquisador Bolsista:** Gabriel Marques  
-> **Período de Execução:** 2026.2  
-> **Status:** ✅ **Artigo 1 Finalizado (Camera-Ready para Submissão)**
+> **Instituição:** Universidade Estadual de Santa Cruz (UESC) — Departamento de Ciências Exatas e Tecnológicas (DCET) — Colegiado de Engenharia Química  
+> **Orientador:** Prof. Dr. Elilton Rodrigues Edwards  
+> **Pesquisador Bolsista / Autor:** Gabriel Marques de Andrade  
+> **Edital:** PROIC/FAPESB/CNPq (Edital 34/2026)  
+> **Documento Base / Tese:** [`Artigos_Rascunhos/Tese.pdf`](Artigos_Rascunhos/Tese.pdf) — *"Contornabilidade, Saturação de Atuador e Trade-offs de Robustez no Controle PID Clássico de CSTRs Exotérmicos Altamente Não Lineares"*  
+> **Status:** ✅ **Artigo 1 Finalizado (Camera-Ready para Submissão) & Tese Concluída**
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
 [![Code Style: Ruff](https://img.shields.io/badge/code%20style-ruff-000000.svg)](https://github.com/astral-sh/ruff)
@@ -256,7 +257,9 @@ IC/
 │   ├── test_pareto.py                # Testes de dominância e fronteira de Pareto
 │   └── test_plot_styles.py           # Testes de conformidade gráfica IEEE
 │
-├── Artigos_Rascunhos/                # Manuscrito do Artigo 1 em LaTeX (IEEEtran)
+├── Artigos_Rascunhos/                # Manuscritos científicos e relatórios técnicos
+│   ├── Tese.pdf                      # Tese / Relatório Técnico-Científico Final UESC (Gabriel Marques de Andrade)
+│   ├── README.md                     # Catálogo e descrição detalhada da tese e artigos
 │   └── Artigo_01_PID_Neural_Comparativo/
 │       ├── main.tex                  # Arquivo mestre LaTeX compilável
 │       ├── sections/                 # Seções modulares 01 a 07
@@ -353,6 +356,8 @@ O script detecta automaticamente todos os arquivos modificados ou criados em `sr
 
 ## Licença e Agradecimentos
 
-Este software é disponibilizado sob a licença [MIT](LICENSE).
+Este software e os manuscritos associados são disponibilizados sob a licença [MIT](LICENSE).
 
-O projeto é financiado pela **Universidade Estadual de Santa Cruz (UESC)** no âmbito do Programa de Iniciação Científica (PROIC) do Departamento de Ciências Exatas e Tecnológicas.
+O projeto é desenvolvido na **Universidade Estadual de Santa Cruz (UESC)**, no âmbito do Colegiado de Engenharia Química e do Departamento de Ciências Exatas e Tecnológicas (DCET), financiado pelo Programa de Iniciação Científica (PROIC) com apoio da **FAPESB** e do **CNPq** (Edital 34/2026).
+
+Agradecimentos especiais ao orientador **Prof. Dr. Elilton Rodrigues Edwards** pela orientação técnica, revisão científica e direcionamento acadêmico ao longo de todas as fases do projeto.
