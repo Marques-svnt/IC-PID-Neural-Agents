@@ -91,9 +91,6 @@ desktop.ini
 *.pkl
 *.npy
 *.npz
-# Manter CSVs de exemplo pequenos
-!exercises/dados_temperatura_trocador.csv
-!exercises/resultados_trocador_calculados.csv
 
 # ========================
 # Overleaf sync
