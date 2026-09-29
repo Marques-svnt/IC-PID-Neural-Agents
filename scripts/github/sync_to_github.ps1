@@ -76,6 +76,7 @@ function Push-File {
 # ============================================================
 $files = @(
     # Raiz
+    @("README.md",                      "README.md"),
     @(".gitignore",                     ".gitignore"),
     @("pyproject.toml",                 "pyproject.toml"),
     @("requirements.txt",               "requirements.txt"),
