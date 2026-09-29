@@ -194,7 +194,7 @@ def run_benchmark() -> None:
 
     # %% [7. Visualização Gráfica no Padrão IEEE (Coluna Única, 300 DPI)]
     setup_ieee_style(single_column=True)
-    fig_w, fig_h = get_figure_dimensions(columns=1, height_override=3.6)
+    fig_w, fig_h = get_figure_dimensions(columns=1, height_override=4.2)
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(fig_w, fig_h), sharex=True, dpi=300)
 
     # Traçado do sinal de referência (setpoint)
@@ -215,12 +215,10 @@ def run_benchmark() -> None:
         ax1.plot(res.t, res.t_pv, label=name, color=color, linestyle=linestyle, linewidth=1.2)
         ax2.plot(res.t, res.u_applied, label=name, color=color, linestyle=linestyle, linewidth=1.2)
 
-    # Ajustes estéticos e de headroom do Subplot 1 (Temperatura do Reator)
-    # Limites estritos [394.0, 397.3] K posicionam a legenda no canto superior direito
-    # perfeitamente acima da curva acomodada em 394.65 K, sem colisão visual.
+    # Ajustes estéticos do Subplot 1 (Temperatura do Reator)
+    # Sem legenda interna: curvas e patamares 100% desobstruídos
     ax1.set_ylabel("Reactor Temp. $T$ (K)", fontsize=8.5)
-    ax1.set_ylim(394.0, 397.3)
-    ax1.legend(loc="upper right", frameon=True, fontsize=6.5, framealpha=0.92)
+    ax1.set_ylim(394.0, 397.2)
     ax1.set_title("Classical PID Benchmark: Setpoint Tracking", fontsize=9.0)
     ax1.grid(True, linestyle=":", alpha=0.6)
 
@@ -240,21 +238,30 @@ def run_benchmark() -> None:
     )
     ax2.set_ylabel(r"Coolant Flow $q_j$ (L/min)", fontsize=8.5)
     ax2.set_xlabel("Time $t$ (min)", fontsize=8.5)
-    # Limites [-15, 335] L/min e legenda compacta em 2 colunas no canto inferior direito
-    # garantem que toda a legenda fique estritamente abaixo do patamar acomodado de 100-110 L/min.
     ax2.set_ylim(-15, 335)
-    ax2.legend(
-        loc="lower right",
-        ncol=2,
-        frameon=True,
-        fontsize=6.3,
-        framealpha=0.92,
-        columnspacing=0.8,
-        handletextpad=0.3,
-    )
     ax2.grid(True, linestyle=":", alpha=0.6)
 
-    plt.tight_layout()
+    # Construção da Legenda Unificada Superior (fig.legend) estilo Figura 3
+    # Extrai manipuladores de ax1 (referência + 4 PIDs) e ax2 (limites de saturação)
+    h1, l1 = ax1.get_legend_handles_labels()
+    h2, l2 = ax2.get_legend_handles_labels()
+    handles_unified = h1 + [h2[-1]]
+    labels_unified = l1 + [l2[-1]]
+
+    fig.legend(
+        handles_unified,
+        labels_unified,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.995),
+        ncol=3,
+        frameon=True,
+        fontsize=5.6,
+        framealpha=0.92,
+        columnspacing=0.4,
+        handletextpad=0.25,
+    )
+
+    plt.tight_layout(rect=[0.0, 0.0, 1.0, 0.89])
     fig_png = figures_dir / "fig1_classical_benchmark.png"
     fig_pdf = figures_dir / "fig1_classical_benchmark.pdf"
     plt.savefig(fig_png, dpi=300)
