@@ -1,19 +1,23 @@
-"""Pareto frontier exploration via continuous tuning parameter sweep on non-linear CSTR.
+# -*- coding: utf-8 -*-
+"""Exploração contínua da fronteira de Pareto no CSTR não-linear via varredura paramétrica.
 
-Generates the authentic Pareto trade-off between setpoint tracking accuracy (IAE)
-and actuator physical wear (TV) by:
-1. Sweeping the Skogestad SIMC closed-loop time constant tau_c in [0.015, 2.5] min.
-2. Performing scalarized multi-objective optimization across lambda in [0.05, 0.95].
-3. Evaluating peak sensitivity Ms to delineate robustness boundaries (Ms <= 1.6).
-4. Mapping discrete classical tunings (ZN, CC, SIMC, ITAE-opt) on the design space.
+Gera o trade-off autêntico de Pareto entre acurácia de rastreamento de setpoint (IAE)
+e esforço/desgaste físico do atuador (TV) através de:
+1. Varredura contínua da constante de tempo em malha fechada tau_c do SIMC em [0.015, 2.5] min.
+2. Otimização multi-objetivo escalarizada através do peso de ponderação lambda em [0.05, 0.95].
+3. Avaliação da sensibilidade máxima de pico Ms para delinear fronteiras de robustez (Ms <= 1.6).
+4. Mapeamento das sintonias clássicas discretas (ZN, CC, SIMC, ITAE-opt) no espaço de projeto.
+
+Atende estritamente às diretrizes de publicação IEEE Transactions (300 DPI, fontes Type 42).
 """
 
+# %% [1. Importações e Configuração de Caminhos]
 import logging
 import sys
 from pathlib import Path
 from typing import Any, Dict, List
 
-# Ensure project root is in sys.path
+# Adiciona a raiz do projeto ao sys.path para garantir importações relativas e absolutas
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -42,23 +46,25 @@ from src.sim_core.actuators import ActuatorLimits
 from src.sim_core.cstr_plant import CSTRPlant, CSTRState
 from src.sim_core.integrator import NumericalIntegrator
 
+# Configuração de logging informativo
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("exp_03_pareto")
 
 
+# %% [2. Utilitário de Exportação de Tabelas em LaTeX]
 def export_latex_table(
     data: List[Dict[str, Any]],
     output_path: Path,
     caption: str,
     label: str,
 ) -> None:
-    """Exports structured data to a clean LaTeX booktabs table.
+    """Exporta registros tabulares para código LaTeX no padrão editorial booktabs.
 
     Args:
-        data: List of dictionary rows.
-        output_path: Target .tex file path.
-        caption: Table caption.
-        label: LaTeX label for cross-referencing.
+        data: Lista de dicionários representando as linhas da tabela.
+        output_path: Caminho de destino para salvar o arquivo .tex.
+        caption: Legenda descritiva da tabela.
+        label: Rótulo de referência cruzada no LaTeX.
     """
     df = pd.DataFrame(data)
     cols = " & ".join(df.columns)
@@ -84,9 +90,10 @@ def export_latex_table(
 \\end{{table}}
 """
     output_path.write_text(latex_code, encoding="utf-8")
-    logger.info("Saved LaTeX table to: %s", output_path)
+    logger.info("Tabela LaTeX salva com sucesso em: %s", output_path)
 
 
+# %% [3. Varredura Paramétrica Contínua de tau_c no Skogestad SIMC]
 def run_simc_sweep(
     plant: CSTRPlant,
     ss: CSTRState,
@@ -95,20 +102,28 @@ def run_simc_sweep(
     limits: ActuatorLimits,
     tau_c_values: np.ndarray,
 ) -> List[Dict[str, Any]]:
-    """Sweeps the closed-loop time constant tau_c for Skogestad SIMC.
+    """Varia continuamente a constante de tempo de malha fechada tau_c do método SIMC.
+
+    Passo a passo didático:
+    1. Para cada tau_c no intervalo [0.015, 2.5] min, calcula os ganhos analíticos do SIMC.
+    2. Avalia a sensibilidade máxima de pico Ms no domínio da frequência.
+    3. Simula a resposta ao degrau de setpoint no modelo não-linear do CSTR.
+    4. Computa as métricas IAE (erro de rastreamento) e TV (variação total do atuador).
 
     Args:
-        plant: CSTR physical plant.
-        ss: Nominal steady state.
-        q_j_ss: Steady-state coolant flow rate.
-        foptd: Identified FOPTD model.
-        limits: Valve physical limits.
-        tau_c_values: Array of tau_c evaluation points [min].
+        plant: Modelo físico do CSTR.
+        ss: Estado estacionário nominal.
+        q_j_ss: Vazão base de fluido refrigerante [L/min].
+        foptd: Modelo FOPTD identificado.
+        limits: Restrições físicas da válvula.
+        tau_c_values: Vetor com os valores discretos de tau_c [min].
 
     Returns:
-        List of result dictionaries containing gains and performance metrics.
+        Lista de dicionários com os resultados de sintonia e desempenho.
     """
-    logger.info("Running Skogestad SIMC parameter sweep across %d points...", len(tau_c_values))
+    logger.info(
+        "Executando varredura paramétrica do Skogestad SIMC com %d pontos...", len(tau_c_values)
+    )
     sim = ClosedLoopSimulator()
     results = []
 
@@ -138,7 +153,7 @@ def run_simc_sweep(
             overshoot = res.metrics.overshoot_pct
             ts = res.metrics.settling_time if res.metrics.settling_time is not None else 10.0
         except Exception as e:
-            logger.warning("Simulation failed for tau_c=%.3f: %s", tc, e)
+            logger.warning("Falha na simulação para tau_c=%.3f: %s", tc, e)
             continue
 
         results.append({
@@ -157,6 +172,7 @@ def run_simc_sweep(
     return results
 
 
+# %% [4. Otimização Multi-Objetivo Escalarizada (Fronteira Teórica de Pareto)]
 def run_scalarized_multiobjective_sweep(
     plant: CSTRPlant,
     ss: CSTRState,
@@ -166,28 +182,34 @@ def run_scalarized_multiobjective_sweep(
     ref_iae: float,
     ref_tv: float,
 ) -> List[Dict[str, Any]]:
-    """Runs scalarized multi-objective optimization: min lambda*(IAE/IAE0) + (1-lambda)*(TV/TV0).
+    """Resolve o problema multi-objetivo: min lambda*(IAE/IAE0) + (1-lambda)*(TV/TV0).
+
+    Passo a passo didático:
+    1. Normaliza IAE e TV pelos valores de referência nominal do SIMC (IAE0, TV0).
+    2. Varia o peso lambda entre 0.05 (prioriza desgaste do atuador) e 0.95 (prioriza erro nulo).
+    3. Aplica penalidade quadrática se a sensibilidade máxima Ms ultrapassar o limite 2.0.
+    4. Aplica algoritmo Nelder-Mead com partida a quente (warm-start) sequencial.
 
     Args:
-        plant: CSTR physical plant.
-        ss: Nominal steady state.
-        q_j_ss: Steady-state coolant flow rate.
-        limits: Valve physical limits.
-        lambdas: Array of trade-off weights in (0, 1).
-        ref_iae: Baseline IAE for normalization.
-        ref_tv: Baseline TV for normalization.
+        plant: Modelo físico do CSTR.
+        ss: Estado estacionário nominal.
+        q_j_ss: Vazão base de resfriamento.
+        limits: Restrições físicas da válvula.
+        lambdas: Vetor de pesos de ponderação no intervalo (0, 1).
+        ref_iae: Valor de normalização para IAE.
+        ref_tv: Valor de normalização para TV.
 
     Returns:
-        List of Pareto-optimal result dictionaries.
+        Lista de resultados sintonizados na fronteira ótima de Pareto.
     """
     logger.info(
-        "Running scalarized multi-objective optimization across %d weights...",
+        "Executando otimização multi-objetivo escalarizada com %d pesos lambda...",
         len(lambdas),
     )
     sim = ClosedLoopSimulator()
     results = []
 
-    # Initial guess: moderate PID
+    # Estimativa inicial moderada para o algoritmo simplex Nelder-Mead
     x0 = np.array([-4.5, 1.2, 0.15], dtype=np.float64)
 
     for lam in lambdas:
@@ -198,7 +220,7 @@ def run_scalarized_multiobjective_sweep(
 
             candidate = PIDGains(kp=kp, ti=ti, td=td)
             ms = calculate_maximum_sensitivity(plant, ss, q_j_ss, candidate)
-            # Penalty for violating robustness boundary Ms <= 2.0
+            # Penalidade estrita para violação do limite superior de robustez Ms <= 2.0
             ms_pen = 1e3 * (ms - 2.0) ** 2 if ms > 2.0 else 0.0
 
             pid = PIDController(
@@ -265,12 +287,13 @@ def run_scalarized_multiobjective_sweep(
             "overshoot": res_opt.metrics.overshoot_pct,
             "settling_time": res_opt.metrics.settling_time or 10.0,
         })
-        # Warm start for next weight
+        # Partida a quente para aceleração da convergência no próximo peso
         x0 = np.array([opt_gains.kp, opt_gains.ti, opt_gains.td], dtype=np.float64)
 
     return results
 
 
+# %% [5. Avaliação dos Pontos Discretos de Benchmark]
 def run_benchmark_points(
     plant: CSTRPlant,
     ss: CSTRState,
@@ -278,7 +301,7 @@ def run_benchmark_points(
     foptd: FOPTDModel,
     limits: ActuatorLimits,
 ) -> Dict[str, Dict[str, Any]]:
-    """Evaluates the discrete classical tuning methods as reference points."""
+    """Avalia os métodos clássicos discretos como pontos de ancoragem na fronteira."""
     sim = ClosedLoopSimulator()
     gains_dict = {
         "Ziegler-Nichols": tune_analytical(foptd, TuningRule.ZIEGLER_NICHOLS_PID),
@@ -321,25 +344,26 @@ def run_benchmark_points(
     return discrete_points
 
 
+# %% [6. Geração da Figura de Publicação no Padrão IEEE (Coluna Dupla)]
 def plot_true_pareto_frontier(
     simc_results: List[Dict[str, Any]],
     opt_results: List[Dict[str, Any]],
     discrete_points: Dict[str, Dict[str, Any]],
     figures_dir: Path,
 ) -> None:
-    """Renders the true continuous Pareto trade-off figure with IEEE editorial formatting."""
+    """Renderiza a figura de publicação da fronteira de Pareto com formatação editorial IEEE."""
     setup_ieee_style(single_column=False)
     fig_w, fig_h = get_figure_dimensions(columns=2, height_override=3.8)
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(fig_w, fig_h), dpi=300)
 
     # ----------------------------------------------------
-    # Panel (a): Pareto Frontier in the (TV, IAE) Plane
+    # Painel (a): Fronteira de Pareto no Plano (TV, IAE)
     # ----------------------------------------------------
     simc_tv = [r["tv"] for r in simc_results]
     simc_iae = [r["iae"] for r in simc_results]
     simc_ms = np.array([r["ms"] for r in simc_results])
 
-    # Plot continuous SIMC curve with colormap based on Ms
+    # Traçado contínuo do locus SIMC com mapa de cores codificado por Ms
     scatter = ax1.scatter(
         simc_tv,
         simc_iae,
@@ -354,10 +378,9 @@ def plot_true_pareto_frontier(
     )
     ax1.plot(simc_tv, simc_iae, color="#555555", linestyle="-", linewidth=1.0, alpha=0.7)
 
-    # Scalarized Multi-objective frontier
+    # Fronteira multi-objetivo escalarizada
     opt_tv = [r["tv"] for r in opt_results]
     opt_iae = [r["iae"] for r in opt_results]
-    # Sort by TV
     sorted_opt = sorted(zip(opt_tv, opt_iae), key=lambda x: x[0])
     ax1.plot(
         [x[0] for x in sorted_opt],
@@ -368,33 +391,59 @@ def plot_true_pareto_frontier(
         label=r"Pareto optimal front ($\lambda$-opt)",
     )
 
-    # Plot discrete benchmark points
+    # Dispersão dos pontos clássicos discretos
     for name, pt in discrete_points.items():
         color = IEEE_PALETTE.get(name, "#000000")
         marker = IEEE_MARKERS.get(name, "o")
-        ax1.scatter(
-            pt["tv"],
-            pt["iae"],
-            color=color,
-            marker=marker,
-            s=65,
-            zorder=5,
-            edgecolors="black",
-            linewidth=0.8,
-            label=f"{name} ($M_s={pt['ms']:.2f}$)",
+        # Rótulo conciso evitando redundância em 'Optimal ITAE'
+        pt_label = (
+            f"Optimal ITAE ($M_s={pt['ms']:.2f}$)"
+            if "Optimal ITAE" in name
+            else f"{name} ($M_s={pt['ms']:.2f}$)"
         )
+        if marker in ["x", "+"]:
+            ax1.scatter(
+                pt["tv"],
+                pt["iae"],
+                color=color,
+                marker=marker,
+                s=65,
+                zorder=5,
+                linewidth=1.2,
+                label=pt_label,
+            )
+        else:
+            ax1.scatter(
+                pt["tv"],
+                pt["iae"],
+                color=color,
+                marker=marker,
+                s=65,
+                zorder=5,
+                edgecolors="black",
+                linewidth=0.8,
+                label=pt_label,
+            )
 
-    # Callout annotations for ZN / CC if off-scale or boundary
+    # Anotação com callout para ZN (posicionamento no quadrante desobstruído)
     zn_pt = discrete_points["Ziegler-Nichols"]
     if zn_pt["tv"] > 300 or zn_pt["iae"] > 5.0:
         ax1.annotate(
-            f"ZN (TV={zn_pt['tv']:.0f}, IAE={zn_pt['iae']:.1f})",
-            xy=(min(zn_pt["tv"], 280), min(zn_pt["iae"], 5.0)),
-            xytext=(160, 4.3),
-            arrowprops=dict(facecolor="#D95F02", arrowstyle="->", lw=0.9),
-            fontsize=7.5,
+            f"ZN: $\\mathrm{{TV}}={zn_pt['tv']:.0f}$\n      $\\mathrm{{IAE}}={zn_pt['iae']:.1f}$",
+            xy=(min(zn_pt["tv"], 285), 4.6),
+            xytext=(240, 3.4),
+            ha="center",
+            arrowprops=dict(facecolor="#D95F02", edgecolor="#D95F02", arrowstyle="->", lw=1.0),
+            fontsize=6.8,
             color="#D95F02",
             fontweight="bold",
+            bbox=dict(
+                boxstyle="round,pad=0.25",
+                facecolor="white",
+                edgecolor="#D95F02",
+                alpha=0.95,
+                lw=0.6,
+            ),
         )
 
     ax1.set_xlim(-5, 300)
@@ -402,16 +451,19 @@ def plot_true_pareto_frontier(
     ax1.set_xlabel(r"Actuator Total Variation $\mathrm{TV}$ (L/min) [Wear / Effort]")
     ax1.set_ylabel(r"Tracking Error $\mathrm{IAE}$ (K$\cdot$min)")
     ax1.set_title(r"(a) True Pareto Trade-off: $\mathrm{IAE}$ vs $\mathrm{TV}$", fontsize=9.0)
-    ax1.legend(loc="upper right", fontsize=7.0, framealpha=0.9)
+    # Legenda em 'upper center' (bbox 0.40, 0.98) na região vazia entre TV < 20 e TV > 200
+    ax1.legend(
+        loc="upper center", bbox_to_anchor=(0.40, 0.98), fontsize=6.5, framealpha=0.92, frameon=True
+    )
     ax1.grid(True, linestyle=":", alpha=0.6)
 
-    # Colorbar for sensitivity Ms
+    # Barra de cores para sensibilidade máxima Ms
     cbar = plt.colorbar(scatter, ax=ax1, pad=0.02, aspect=20)
-    cbar.set_label("Maximum Sensitivity $M_s = \\|S\\|_\\infty$", fontsize=8.0)
+    cbar.set_label(r"Maximum Sensitivity $M_s = \|S\|_\infty$", fontsize=8.0)
     cbar.ax.tick_params(labelsize=7.5)
 
     # ----------------------------------------------------
-    # Panel (b): Tuning Parameter tau_c vs Robustness Ms & IAE
+    # Painel (b): Parâmetro tau_c vs Robustez (Ms) e IAE
     # ----------------------------------------------------
     tau_cs = [r["tau_c"] for r in simc_results]
     ms_vals = [r["ms"] for r in simc_results]
@@ -421,23 +473,28 @@ def plot_true_pareto_frontier(
     color_iae = "#E31A1C"
 
     ax2.plot(
-        tau_cs, ms_vals, color=color_ms, linestyle="-", linewidth=1.5, label="Max Sensitivity $M_s$"
+        tau_cs,
+        ms_vals,
+        color=color_ms,
+        linestyle="-",
+        linewidth=1.5,
+        label=r"Max Sensitivity $M_s$",
     )
     ax2.axhline(
-        1.6, color="#33A02C", linestyle="--", linewidth=1.1, label="Robust Target $M_s = 1.6$"
+        1.6, color="#33A02C", linestyle="--", linewidth=1.1, label=r"Robust Target $M_s = 1.6$"
     )
     ax2.axhline(
-        2.0, color="#E31A1C", linestyle=":", linewidth=1.1, label="Marginal Limit $M_s = 2.0$"
+        2.0, color="#E31A1C", linestyle=":", linewidth=1.1, label=r"Marginal Limit $M_s = 2.0$"
     )
 
     ax2.set_xscale("log")
     ax2.set_xlabel(r"Closed-loop Tuning Parameter $\tau_c$ (min) [Log Scale]")
     ax2.set_ylabel(r"Maximum Sensitivity Peak $M_s$", color=color_ms)
     ax2.tick_params(axis="y", labelcolor=color_ms)
-    ax2.set_ylim(1.0, 3.5)
+    ax2.set_ylim(0.95, 3.6)
     ax2.grid(True, linestyle=":", alpha=0.6)
 
-    # Twin axis for IAE
+    # Eixo secundário (twinx) para erro de rastreamento IAE
     ax2_twin = ax2.twinx()
     ax2_twin.plot(
         tau_cs,
@@ -449,17 +506,20 @@ def plot_true_pareto_frontier(
     )
     ax2_twin.set_ylabel(r"Tracking Error $IAE$ (K$\cdot$min)", color=color_iae)
     ax2_twin.tick_params(axis="y", labelcolor=color_iae)
-    ax2_twin.set_ylim(1.0, 6.0)
+    ax2_twin.set_ylim(0.95, 6.2)
 
-    # Combined legend for panel (b)
+    # Legenda combinada no centro superior: na faixa tau_c entre 0.06 e 0.5, Ms=1.15 e IAE=1.0,
+    # deixando a área acima de y=2.0 100% livre e limpa de curvas!
     lines_1, labels_1 = ax2.get_legend_handles_labels()
     lines_2, labels_2 = ax2_twin.get_legend_handles_labels()
     ax2.legend(
         lines_1 + lines_2,
         labels_1 + labels_2,
-        loc="upper right",
-        fontsize=7.0,
-        framealpha=0.9,
+        loc="upper center",
+        bbox_to_anchor=(0.50, 0.98),
+        fontsize=6.8,
+        framealpha=0.92,
+        frameon=True,
     )
     ax2.set_title(r"(b) Robustness ($M_s$) and Performance ($IAE$) vs $\tau_c$", fontsize=9.0)
 
@@ -470,11 +530,12 @@ def plot_true_pareto_frontier(
     plt.savefig(fig_png, dpi=300)
     plt.savefig(fig_pdf)
     plt.close()
-    logger.info("Saved true Pareto figures to: %s and %s", fig_png, fig_pdf)
+    logger.info("Figuras da fronteira de Pareto salvas com sucesso em: %s e %s", fig_png, fig_pdf)
 
 
+# %% [7. Ensaio Principal e Geração de Artefatos]
 def run_experiment() -> None:
-    """Executes the full true Pareto exploration and generates artifacts."""
+    """Executa a campanha completa de exploração de Pareto e gera figuras e tabelas."""
     paper_dir = PROJECT_ROOT / "Artigos_Rascunhos" / "Artigo_01_PID_Neural_Comparativo"
     figures_dir = paper_dir / "figures"
     tables_dir = paper_dir / "tables"
@@ -487,8 +548,8 @@ def run_experiment() -> None:
     ss = plant.find_steady_state(q_j=q_j_ss)
     limits = ActuatorLimits(u_min=0.0, u_max=300.0, max_slew_rate=80.0)
 
-    # 1. System Identification
-    logger.info("Identifying nominal FOPTD transfer function...")
+    # 1. Identificação do Modelo
+    logger.info("Identificando função de transferência FOPTD nominal...")
     delta_q = 10.0
     id_res = integrator.simulate_open_loop(
         plant=plant,
@@ -511,34 +572,44 @@ def run_experiment() -> None:
         rmse,
     )
 
-    # 2. Continuous Skogestad SIMC Sweep
-    tau_c_vals = np.logspace(np.log10(0.015), np.log10(2.5), 45)
-    simc_results = run_simc_sweep(plant, ss, q_j_ss, foptd, limits, tau_c_vals)
+    cache_file = PROJECT_ROOT / "experiments" / ".exp_03_cache.pkl"
+    if cache_file.exists():
+        logger.info("Carregando resultados da otimização de Pareto do cache local: %s", cache_file)
+        import pickle
+        with open(cache_file, "rb") as f:
+            simc_results, opt_results, discrete_points = pickle.load(f)
+    else:
+        # 2. Varredura Paramétrica do Skogestad SIMC
+        tau_c_vals = np.logspace(np.log10(0.015), np.log10(2.5), 45)
+        simc_results = run_simc_sweep(plant, ss, q_j_ss, foptd, limits, tau_c_vals)
 
-    # 3. Discrete Classical Benchmark Points
-    discrete_points = run_benchmark_points(plant, ss, q_j_ss, foptd, limits)
+        # 3. Pontos de Referência dos Métodos Discretos
+        discrete_points = run_benchmark_points(plant, ss, q_j_ss, foptd, limits)
 
-    # Reference values for scalarization
-    ref_iae = discrete_points["Skogestad SIMC"]["iae"]
-    ref_tv = discrete_points["Skogestad SIMC"]["tv"]
+        # Valores de referência para normalização da otimização multi-objetivo
+        ref_iae = discrete_points["Skogestad SIMC"]["iae"]
+        ref_tv = discrete_points["Skogestad SIMC"]["tv"]
 
-    # 4. Multi-objective scalarized optimization sweep
-    lambdas = np.linspace(0.05, 0.95, 12)
-    opt_results = run_scalarized_multiobjective_sweep(
-        plant=plant,
-        ss=ss,
-        q_j_ss=q_j_ss,
-        limits=limits,
-        lambdas=lambdas,
-        ref_iae=ref_iae,
-        ref_tv=ref_tv,
-    )
+        # 4. Varredura de Otimização Multi-Objetivo Escalarizada
+        lambdas = np.linspace(0.05, 0.95, 10)
+        opt_results = run_scalarized_multiobjective_sweep(
+            plant=plant,
+            ss=ss,
+            q_j_ss=q_j_ss,
+            limits=limits,
+            lambdas=lambdas,
+            ref_iae=ref_iae,
+            ref_tv=ref_tv,
+        )
+        import pickle
+        with open(cache_file, "wb") as f:
+            pickle.dump((simc_results, opt_results, discrete_points), f)
+        logger.info("Resultados de Pareto salvos em cache: %s", cache_file)
 
-    # 5. Generate True Pareto Plot
+    # 5. Geração da Figura de Publicação
     plot_true_pareto_frontier(simc_results, opt_results, discrete_points, figures_dir)
 
-    # 6. Generate LaTeX Summary Table
-    # Sample 6 representative tau_c values plus optimal points
+    # 6. Geração da Tabela Resumo em LaTeX
     table_rows = []
     target_tcs = [0.03, 0.10, 0.25, 0.40, 0.80, 1.50]
     for target in target_tcs:
@@ -578,5 +649,6 @@ def run_experiment() -> None:
     )
 
 
+# %% [8. Ponto de Entrada Principal]
 if __name__ == "__main__":
     run_experiment()
