@@ -108,7 +108,7 @@ $files = @(
 # ============================================================
 # Detectar automaticamente arquivos em src/, tests/, experiments/, Projeto/, Artigos_Rascunhos, Biblioteca e exercises/
 # ============================================================
-Get-ChildItem -Path "$base\src" -Recurse -Include "*.py" | 
+Get-ChildItem -Path "$base\src" -Recurse -Include "*.py","*.md" | 
     Where-Object { 
         $_.FullName -notlike "*\__pycache__*" -and 
         $_.FullName -notlike "*\.egg-info*" 
@@ -120,7 +120,7 @@ Get-ChildItem -Path "$base\src" -Recurse -Include "*.py" |
         }
     }
 
-Get-ChildItem -Path "$base\tests" -Recurse -Include "*.py" | 
+Get-ChildItem -Path "$base\tests" -Recurse -Include "*.py","*.md" | 
     Where-Object { 
         $_.FullName -notlike "*\__pycache__*" -and 
         $_.FullName -notlike "*\.pytest_cache*" 
@@ -133,7 +133,7 @@ Get-ChildItem -Path "$base\tests" -Recurse -Include "*.py" |
     }
 
 if (Test-Path "$base\experiments") {
-    Get-ChildItem -Path "$base\experiments" -Recurse -Include "*.py" | 
+    Get-ChildItem -Path "$base\experiments" -Recurse -Include "*.py","*.md" | 
         Where-Object { $_.FullName -notlike "*\__pycache__*" } | ForEach-Object {
             $rel = $_.FullName.Replace("$base\", "").Replace("\", "/")
             $loc = $_.FullName.Replace("$base\", "")
@@ -167,21 +167,6 @@ Get-ChildItem -Path "$base\Biblioteca" -Recurse -Include "*.pdf" | ForEach-Objec
     }
 }
 
-if (Test-Path "$base\exercises") {
-    Get-ChildItem -Path "$base\exercises" -Recurse -Include "*.py","*.md","*.txt","*.csv","*.png" | 
-        Where-Object { 
-            $_.FullName -notlike "*\.venv*" -and 
-            $_.FullName -notlike "*\.pytest_cache*" -and 
-            $_.FullName -notlike "*\__pycache__*" -and 
-            $_.FullName -notlike "*\.spyproject*" 
-        } | ForEach-Object {
-            $rel = $_.FullName.Replace("$base\", "").Replace("\", "/")
-            $loc = $_.FullName.Replace("$base\", "")
-            if ($files -notcontains @($loc, $rel)) {
-                $files += ,@($loc, $rel)
-            }
-        }
-}
 
 
 # Sync scripts/ folder (github + overleaf helpers)
