@@ -1,21 +1,24 @@
-"""Comprehensive robustness, parameter uncertainty, and disturbance campaign for CSTR.
+# -*- coding: utf-8 -*-
+"""Campanha abrangente de robustez, incerteza paramétrica e rejeição de distúrbios no CSTR.
 
-Evaluates classical PID controllers (Ziegler-Nichols, Cohen-Coon, Skogestad SIMC,
-and Constrained Optimal ITAE) across:
-1. Unmeasured load disturbance rejection (feed temperature and concentration shocks).
-2. Heat exchanger fouling and parameter drift (UA degradation from 100% to 60%).
-3. Sensor measurement noise sweep and actuator wear Pareto frontier (IAE vs TV).
-4. Wide-range multi-operating point non-linear setpoint tracking.
+Avalia os controladores PID clássicos (Ziegler-Nichols, Cohen-Coon, Skogestad SIMC
+e ITAE Ótimo com restrição de sensibilidade máxima) através de quatro ensaios:
+1. Rejeição de perturbações de carga não-mensuradas (choques térmicos e de
+   concentração na alimentação).
+2. Incrustação térmica (fouling) na camisa de resfriamento (degradação de UA de 100% até 60%).
+3. Varredura de ruído de medição nos sensores e fronteira de esforço do atuador (IAE vs TV).
+4. Rastreamento não-linear de múltiplos pontos de operação em larga escala.
 
-Generates publication-quality figures and booktabs LaTeX tables for Article 1.
+Gera todas as figuras com resolução de 300 DPI e tabelas no padrão booktabs para o Artigo 1.
 """
 
+# %% [1. Importações e Configuração de Caminhos]
 import logging
 import sys
 from pathlib import Path
 from typing import Any
 
-# Ensure project root is in sys.path
+# Adiciona a raiz do projeto ao sys.path para garantir importações relativas e absolutas
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -42,26 +45,34 @@ from src.sim_core.actuators import ActuatorLimits
 from src.sim_core.cstr_plant import CSTRPlant, CSTRState
 from src.sim_core.integrator import NumericalIntegrator
 
+# Configuração de logging estruturado
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("exp_02_robustness")
 
 CONTROLLER_COLORS = IEEE_PALETTE
 
 
+# %% [2. Identificação FOPTD e Sintonia dos Controladores PID]
 def setup_controllers(
     plant: CSTRPlant, ss: CSTRState, q_j_ss: float
 ) -> dict[str, PIDGains]:
-    """Identifies FOPTD model and tunes all four PID strategies.
+    """Identifica o modelo de primeira ordem com tempo morto e sintoniza as 4 estratégias PID.
+
+    Passo a passo didático:
+    1. Realiza um teste de degrau em malha aberta (+10 L/min na camisa de resfriamento).
+    2. Identifica os parâmetros FOPTD (ganho K, constante de tempo tau, tempo morto theta).
+    3. Calcula os parâmetros (Kp, Ti, Td) para Ziegler-Nichols, Cohen-Coon, Skogestad SIMC
+       e sintoniza numericamente o ITAE restrito a Ms <= 1.6 via Nelder-Mead.
 
     Args:
-        plant: CSTR plant model.
-        ss: Nominal steady state.
-        q_j_ss: Nominal steady-state coolant flow rate [L/min].
+        plant: Modelo físico do CSTR.
+        ss: Estado estacionário nominal de operação.
+        q_j_ss: Vazão de fluido refrigerante nominal [L/min].
 
     Returns:
-        Dictionary mapping controller name to PIDGains.
+        Dicionário mapeando o nome de cada controlador para seus respectivos ganhos PID.
     """
-    logger.info("Performing step test identification (+10 L/min)...")
+    logger.info("Executando degrau de identificação em malha aberta (+10 L/min)...")
     integrator = NumericalIntegrator(method="RK45")
     delta_q = 10.0
     id_res = integrator.simulate_open_loop(
@@ -102,19 +113,20 @@ def setup_controllers(
     }
 
 
+# %% [3. Utilitário de Exportação de Tabelas em LaTeX]
 def export_latex_table(
     data: list[dict[str, Any]],
     output_path: Path,
     caption: str,
     label: str,
 ) -> None:
-    """Exports structured data to publication-grade LaTeX booktabs table.
+    """Exporta registros tabulares para código LaTeX no padrão editorial booktabs.
 
     Args:
-        data: List of dictionary records.
-        output_path: Target path for .tex file.
-        caption: Table caption.
-        label: LaTeX label reference.
+        data: Lista de dicionários representando as linhas da tabela.
+        output_path: Caminho de destino para salvar o arquivo .tex.
+        caption: Legenda descritiva da tabela.
+        label: Rótulo de referência cruzada no LaTeX.
     """
     df = pd.DataFrame(data)
     cols = " & ".join(df.columns)
@@ -141,9 +153,10 @@ def export_latex_table(
 """
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(latex_table, encoding="utf-8")
-    logger.info("Saved LaTeX table to: %s", output_path)
+    logger.info("Tabela LaTeX salva com sucesso em: %s", output_path)
 
 
+# %% [4. Ensaio 1: Rejeição de Perturbações de Carga Não-Mensuradas]
 def run_load_disturbance_campaign(
     plant: CSTRPlant,
     ss: CSTRState,
@@ -153,26 +166,27 @@ def run_load_disturbance_campaign(
     figures_dir: Path,
     tables_dir: Path,
 ) -> None:
-    """Evaluates regulatory response against unmeasured feed shocks.
+    """Avalia o controle regulatório contra perturbações não-mensuradas na alimentação.
+
+    Cronograma didático de perturbações:
+    - t em [0, 2) min: Regime permanente nominal.
+    - t em [2, 8) min: Choque térmico de alimentação Delta T_f = +5.0 K.
+    - t em [8, 15] min: Choque cumulativo de concentração Delta C_Af = +0.2 mol/L (+20%).
 
     Args:
-        plant: CSTR physical plant.
-        ss: Nominal steady-state.
-        q_j_ss: Baseline coolant flow [L/min].
-        controllers: Tuned PID gains dict.
-        limits: Actuator physical saturation limits.
-        figures_dir: Output path for plots.
-        tables_dir: Output path for LaTeX tables.
+        plant: Modelo físico do reator CSTR.
+        ss: Estado estacionário nominal.
+        q_j_ss: Vazão base de resfriamento [L/min].
+        controllers: Dicionário de controladores PID sintonizados.
+        limits: Restrições físicas de saturação e taxa da válvula.
+        figures_dir: Diretório de destino para figuras.
+        tables_dir: Diretório de destino para tabelas.
     """
-    logger.info("=== Running Load Disturbance Rejection Campaign ===")
+    logger.info("=== Executando Campanha de Rejeição de Perturbações de Carga ===")
     sim = ClosedLoopSimulator()
     t_span = (0.0, 15.0)
     dt = 0.02
 
-    # Disturbance timeline:
-    # t in [0, 2): Nominal steady state
-    # t in [2, 8): Feed temperature surge Delta T_f = +5.0 K
-    # t in [8, 15]: Additional feed concentration surge Delta C_Af = +0.2 mol/L (+20%)
     def disturbance_profile(t: float) -> dict[str, float]:
         dist = {}
         if 2.0 <= t < 8.0:
@@ -198,14 +212,13 @@ def run_load_disturbance_campaign(
             initial_state=ss,
             t_span=t_span,
             dt=dt,
-            setpoint_func=lambda t: ss.T,  # Strictly regulatory control at nominal T
+            setpoint_func=lambda t: ss.T,  # Controle puramente regulatório em T nominal
             disturbance_func=disturbance_profile,
             noise_std=0.05,
             seed=42,
         )
         sim_results[name] = res
 
-        # Peak deviation from setpoint during disturbance
         dev = np.abs(res.t_pv - ss.T)
         peak_dev = np.max(dev[res.t >= 2.0])
 
@@ -226,12 +239,12 @@ def run_load_disturbance_campaign(
         label="tab:load_disturbance",
     )
 
-    # Plot trajectories with IEEE Single-Column Standard
+    # Geração dos gráficos IEEE em coluna única (3.5 in)
     setup_ieee_style(single_column=True)
     fig_w, fig_h = get_figure_dimensions(columns=1, height_override=3.6)
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(fig_w, fig_h), sharex=True, dpi=300)
 
-    # Reference nominal line
+    # Sinal de referência nominal
     sample_res = next(iter(sim_results.values()))
     ax1.plot(
         sample_res.t,
@@ -242,11 +255,11 @@ def run_load_disturbance_campaign(
         linewidth=1.2,
     )
 
-    # Annotate disturbance injection points
+    # Linhas verticais indicando a injeção dos distúrbios com anotações em posições desobstruídas
     ax1.axvline(2.0, color="gray", linestyle="--", linewidth=0.8, alpha=0.7)
-    ax1.text(2.1, 401.0, "$\\Delta T_f = +5$ K", fontsize=7.5, color="#555555")
+    ax1.text(2.1, 395.6, r"$\Delta T_f = +5$ K", fontsize=7.2, color="#444444")
     ax1.axvline(8.0, color="gray", linestyle="--", linewidth=0.8, alpha=0.7)
-    ax1.text(8.1, 401.0, "$\\Delta C_{Af} = +20\\%$", fontsize=7.5, color="#555555")
+    ax1.text(8.1, 395.6, r"$\Delta C_{Af} = +20\%$", fontsize=7.2, color="#444444")
 
     for name, res in sim_results.items():
         color = IEEE_PALETTE.get(name, "#333333")
@@ -254,11 +267,15 @@ def run_load_disturbance_campaign(
         ax1.plot(res.t, res.t_pv, label=name, color=color, linestyle=linestyle, linewidth=1.2)
         ax2.plot(res.t, res.u_applied, label=name, color=color, linestyle=linestyle, linewidth=1.2)
 
+    # Subplot 1: Temperatura do reator com faixa [395.0, 404.0] K
+    # Legenda no canto superior esquerdo (t=0 a 6 min), livre do surto de ZN/CC à direita
     ax1.set_ylabel("Reactor Temp. $T$ (K)", fontsize=8.5)
-    ax1.set_title("Load Disturbance Rejection ($+5$ K & $+20\\% C_{Af}$)", fontsize=9.0)
-    ax1.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
+    ax1.set_title(r"Load Disturbance Rejection ($+5$ K & $+20\% C_{Af}$)", fontsize=9.0)
+    ax1.set_ylim(395.0, 404.0)
+    ax1.legend(loc="upper left", frameon=True, fontsize=6.5, framealpha=0.92)
     ax1.grid(True, linestyle=":", alpha=0.6)
 
+    # Subplot 2: Vazão de fluido refrigerante com limites físicos
     ax2.axhline(
         limits.u_max,
         color=IEEE_PALETTE["Constraint"],
@@ -274,7 +291,17 @@ def run_load_disturbance_campaign(
     )
     ax2.set_ylabel(r"Coolant Flow $q_j$ (L/min)", fontsize=8.5)
     ax2.set_xlabel("Time $t$ (min)", fontsize=8.5)
-    ax2.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
+    # Limites [-15, 335] L/min e legenda compacta em 2 colunas no canto inferior direito
+    ax2.set_ylim(-15, 335)
+    ax2.legend(
+        loc="lower right",
+        ncol=2,
+        frameon=True,
+        fontsize=6.3,
+        framealpha=0.92,
+        columnspacing=0.8,
+        handletextpad=0.3,
+    )
     ax2.grid(True, linestyle=":", alpha=0.6)
 
     plt.tight_layout()
@@ -283,9 +310,10 @@ def run_load_disturbance_campaign(
     plt.savefig(fig_png, dpi=300)
     plt.savefig(fig_pdf)
     plt.close()
-    logger.info("Saved fig2: %s and %s", fig_png, fig_pdf)
+    logger.info("Figuras salvas com sucesso em: %s e %s", fig_png, fig_pdf)
 
 
+# %% [5. Ensaio 2: Incrustação Térmica na Camisa (Degradação de UA)]
 def run_fouling_campaign(
     plant: CSTRPlant,
     ss: CSTRState,
@@ -295,18 +323,24 @@ def run_fouling_campaign(
     figures_dir: Path,
     tables_dir: Path,
 ) -> None:
-    """Evaluates stability and performance degradation under jacket thermal fouling (UA loss).
+    """Avalia a estabilidade e a perda de desempenho com a degradação térmica de UA (incrustação).
+
+    Passo a passo didático:
+    1. Varia o coeficiente global de transferência térmica UA de 100% até 60% do valor de projeto.
+    2. Aplica degrau de setpoint (-2 K) e analisa a lentidão e saturação da válvula.
+    3. Constrói um painel 2x2 com LEGENDA COMPARTILHADA ÚNICA no topo da figura (fig.legend),
+       eliminando 4 caixas repetitivas e desobstruindo integralmente todos os subplots.
 
     Args:
-        plant: CSTR physical plant.
-        ss: Nominal steady-state.
-        q_j_ss: Baseline coolant flow [L/min].
-        controllers: Tuned PID gains dict.
-        limits: Actuator physical saturation limits.
-        figures_dir: Output path for plots.
-        tables_dir: Output path for LaTeX tables.
+        plant: Modelo físico do CSTR.
+        ss: Estado estacionário nominal.
+        q_j_ss: Vazão base de resfriamento.
+        controllers: Controladores PID avaliados.
+        limits: Restrições físicas da válvula.
+        figures_dir: Diretório de destino para figuras.
+        tables_dir: Diretório de destino para tabelas.
     """
-    logger.info("=== Running Thermal Fouling Campaign (UA Degradation) ===")
+    logger.info("=== Executando Campanha de Incrustação Térmica (Degradação de UA) ===")
     sim = ClosedLoopSimulator()
     t_span = (0.0, 10.0)
     dt = 0.02
@@ -315,7 +349,7 @@ def run_fouling_campaign(
     fouling_levels = [1.0, 0.9, 0.8, 0.7, 0.6]  # UA / UA_nominal
     table_rows = []
 
-    # Store trajectories for nominal (1.0) and severe fouling (0.7) for plotting
+    # Armazena trajetórias de 100% UA (limpo) e 70% UA (incrustação severa) para o gráfico 2x2
     plot_data: dict[str, dict[str, Any]] = {"1.0": {}, "0.7": {}}
 
     for name, gains in controllers.items():
@@ -360,14 +394,14 @@ def run_fouling_campaign(
         label="tab:fouling_sensitivity",
     )
 
-    # Plot comparison: Nominal (100% UA) vs Severe Fouling (70% UA) - IEEE Double-Column Standard
+    # Figura em Coluna Dupla (7.16 in) no formato 2x2 com Legenda Compartilhada Superior
     setup_ieee_style(single_column=False)
     fig_w, fig_h = get_figure_dimensions(columns=2, height_override=4.2)
     fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(fig_w, fig_h), sharex=True, dpi=300)
 
     sample_res = next(iter(plot_data["1.0"].values()))
 
-    # Panel (a): T at 100% UA
+    # Painel (a): Temperatura T com Camisa Limpa (100% UA)
     ax1.plot(
         sample_res.t,
         sample_res.setpoint,
@@ -380,12 +414,11 @@ def run_fouling_campaign(
         color = IEEE_PALETTE.get(name, "#333333")
         linestyle = IEEE_LINESTYLES.get(name, "-")
         ax1.plot(res.t, res.t_pv, label=name, color=color, linestyle=linestyle, linewidth=1.2)
-    ax1.set_title("(a) Clean Jacket ($100\\% UA$): Temperature $T$", fontsize=9.0)
+    ax1.set_title(r"(a) Clean Jacket ($100\% UA$): Temperature $T$", fontsize=9.0)
     ax1.set_ylabel("Reactor Temp. $T$ (K)", fontsize=8.5)
-    ax1.legend(loc="lower right", frameon=True, fontsize=6.8, framealpha=0.9)
     ax1.grid(True, linestyle=":", alpha=0.6)
 
-    # Panel (b): T at 70% UA
+    # Painel (b): Temperatura T com Camisa Incrustada (70% UA)
     ax2.plot(
         sample_res.t,
         sample_res.setpoint,
@@ -398,11 +431,10 @@ def run_fouling_campaign(
         color = IEEE_PALETTE.get(name, "#333333")
         linestyle = IEEE_LINESTYLES.get(name, "-")
         ax2.plot(res.t, res.t_pv, label=name, color=color, linestyle=linestyle, linewidth=1.2)
-    ax2.set_title("(b) Fouled Jacket ($70\\% UA$): Temperature $T$", fontsize=9.0)
-    ax2.legend(loc="lower right", frameon=True, fontsize=6.8, framealpha=0.9)
+    ax2.set_title(r"(b) Fouled Jacket ($70\% UA$): Temperature $T$", fontsize=9.0)
     ax2.grid(True, linestyle=":", alpha=0.6)
 
-    # Panel (c): Coolant Flow at 100% UA
+    # Painel (c): Vazão de Fluido q_j com Camisa Limpa (100% UA)
     for name, res in plot_data["1.0"].items():
         color = IEEE_PALETTE.get(name, "#333333")
         linestyle = IEEE_LINESTYLES.get(name, "-")
@@ -417,10 +449,10 @@ def run_fouling_campaign(
     ax3.set_title(r"(c) Clean Jacket ($100\% UA$): Coolant $q_j$", fontsize=9.0)
     ax3.set_ylabel(r"Coolant Flow $q_j$ (L/min)", fontsize=8.5)
     ax3.set_xlabel("Time $t$ (min)", fontsize=8.5)
-    ax3.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
+    ax3.set_ylim(-15, 335)
     ax3.grid(True, linestyle=":", alpha=0.6)
 
-    # Panel (d): Coolant Flow at 70% UA
+    # Painel (d): Vazão de Fluido q_j com Camisa Incrustada (70% UA)
     for name, res in plot_data["0.7"].items():
         color = IEEE_PALETTE.get(name, "#333333")
         linestyle = IEEE_LINESTYLES.get(name, "-")
@@ -434,18 +466,40 @@ def run_fouling_campaign(
     )
     ax4.set_title(r"(d) Fouled Jacket ($70\% UA$): Coolant $q_j$", fontsize=9.0)
     ax4.set_xlabel("Time $t$ (min)", fontsize=8.5)
-    ax4.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
+    ax4.set_ylim(-15, 335)
     ax4.grid(True, linestyle=":", alpha=0.6)
 
-    plt.tight_layout()
+    # Construção da Legenda Unificada Superior (fig.legend)
+    # Extrai os manipuladores de ax1 (referência + 4 PIDs) e ax3 (limites físicos)
+    h1, l1 = ax1.get_legend_handles_labels()
+    h3, l3 = ax3.get_legend_handles_labels()
+    handles_unified = h1 + [h3[-1]]
+    labels_unified = l1 + [l3[-1]]
+
+    fig.legend(
+        handles_unified,
+        labels_unified,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.995),
+        ncol=6,
+        frameon=True,
+        fontsize=7.2,
+        framealpha=0.92,
+        columnspacing=0.8,
+        handletextpad=0.4,
+    )
+
+    # Ajusta a margem superior para acomodar perfeitamente a legenda sem sobrepor os títulos
+    plt.tight_layout(rect=[0.0, 0.0, 1.0, 0.93])
     fig_png = figures_dir / "fig3_fouling_robustness.png"
     fig_pdf = figures_dir / "fig3_fouling_robustness.pdf"
     plt.savefig(fig_png, dpi=300)
     plt.savefig(fig_pdf)
     plt.close()
-    logger.info("Saved fig3: %s and %s", fig_png, fig_pdf)
+    logger.info("Figuras salvas com sucesso em: %s e %s", fig_png, fig_pdf)
 
 
+# %% [6. Ensaio 3: Sensibilidade a Ruído de Medição e Desgaste do Atuador (IAE vs TV)]
 def run_noise_and_pareto_campaign(
     plant: CSTRPlant,
     ss: CSTRState,
@@ -455,27 +509,32 @@ def run_noise_and_pareto_campaign(
     figures_dir: Path,
     tables_dir: Path,
 ) -> None:
-    """Quantifies sensor noise sensitivity and maps the IAE vs TV Pareto frontier.
+    """Quantifica a sensibilidade ao ruído estocástico de medição via Monte Carlo.
+
+    Passo a passo didático:
+    1. Varia o desvio padrão do ruído gaussiano sigma em [0.0, 0.1, 0.2, 0.5, 1.0] K.
+    2. Executa simulações Monte Carlo com 5 sementes pseudo-aleatórias para cada nível de ruído.
+    3. Calcula média e desvio padrão para IAE (erro de rastreamento) e TV (desgaste da válvula).
+    4. Plota o diagrama de dispersão IAE vs TV com anotações claras e legenda desobstruída.
 
     Args:
-        plant: CSTR physical plant.
-        ss: Nominal steady-state.
-        q_j_ss: Baseline coolant flow [L/min].
-        controllers: Tuned PID gains dict.
-        limits: Actuator physical saturation limits.
-        figures_dir: Output path for plots.
-        tables_dir: Output path for LaTeX tables.
+        plant: Modelo físico do CSTR.
+        ss: Estado estacionário nominal.
+        q_j_ss: Vazão base de resfriamento.
+        controllers: Controladores PID avaliados.
+        limits: Restrições físicas da válvula.
+        figures_dir: Diretório de destino para figuras.
+        tables_dir: Diretório de destino para tabelas.
     """
-    logger.info("=== Running Sensor Noise & Actuator Chattering (Pareto) Campaign ===")
+    logger.info("=== Executando Campanha de Ruído nos Sensores e Chattering da Válvula ===")
     sim = ClosedLoopSimulator()
     t_span = (0.0, 10.0)
     dt = 0.02
     target_T = ss.T - 2.0
 
-    noise_levels = [0.0, 0.1, 0.2, 0.5, 1.0]  # Standard deviation of temperature measurement [K]
+    noise_levels = [0.0, 0.1, 0.2, 0.5, 1.0]  # Desvio padrão do ruído gaussiano [K]
     n_monte_carlo = 5
 
-    # Structure to hold metrics: results[name][sigma] = {"iae": [...], "tv": [...]}
     results: dict[str, dict[float, dict[str, list[float]]]] = {
         name: {sigma: {"iae": [], "tv": []} for sigma in noise_levels}
         for name in controllers
@@ -503,7 +562,6 @@ def run_noise_and_pareto_campaign(
                 results[name][sigma]["iae"].append(res.metrics.iae)
                 results[name][sigma]["tv"].append(res.metrics.tv)
 
-    # Aggregate into summary table
     table_rows = []
     for name in controllers:
         for sigma in noise_levels:
@@ -527,54 +585,68 @@ def run_noise_and_pareto_campaign(
         label="tab:noise_sensitivity",
     )
 
-    # Plot Pareto Frontier: IAE vs TV
-    plt.figure(figsize=(8.0, 6.0), dpi=300)
-    markers = ["o", "s", "^", "D"]
+    # Configuração gráfica no padrão IEEE de coluna única
+    setup_ieee_style(single_column=True)
+    fig_w, fig_h = get_figure_dimensions(columns=1, height_override=3.5)
+    fig, ax = plt.subplots(figsize=(fig_w, fig_h), dpi=300)
 
+    markers = ["o", "s", "^", "D"]
     for (name, marker) in zip(controllers.keys(), markers):
         iaes = [np.mean(results[name][sig]["iae"]) for sig in noise_levels]
         tvs = [np.mean(results[name][sig]["tv"]) for sig in noise_levels]
         color = CONTROLLER_COLORS[name]
-
-        plt.plot(tvs, iaes, marker=marker, linestyle="-", label=name, color=color, markersize=7)
-
-        # Annotate noise level endpoints
-        plt.annotate(
-            f"$\\sigma={noise_levels[0]}$",
-            (tvs[0], iaes[0]),
-            textcoords="offset points",
-            xytext=(5, 5),
-            fontsize=8,
+        ax.plot(
+            tvs,
+            iaes,
+            marker=marker,
+            linestyle="-",
+            label=name,
             color=color,
-        )
-        plt.annotate(
-            f"$\\sigma={noise_levels[-1]}$",
-            (tvs[-1], iaes[-1]),
-            textcoords="offset points",
-            xytext=(5, -10),
-            fontsize=8,
-            color=color,
+            markersize=5.0,
+            linewidth=1.2,
         )
 
-    plt.xlabel("Actuator Total Variation $TV$ (L/min) [Wear / Chattering]", fontsize=11)
-    plt.ylabel("Integral Absolute Error $IAE$ (K$\\cdot$min) [Tracking Error]", fontsize=11)
-    plt.title(
-        "Pareto Trade-off: Tracking Quality vs Actuator Wear across Noise Levels",
-        fontsize=12,
-        fontweight="bold",
+    # Anotações limpas com setas indicando os extremos de ruído sem sobreposição de texto
+    sample_iaes = [np.mean(results["Skogestad SIMC"][sig]["iae"]) for sig in noise_levels]
+    sample_tvs = [np.mean(results["Skogestad SIMC"][sig]["tv"]) for sig in noise_levels]
+    ax.annotate(
+        r"$\sigma = 0.0$ K",
+        xy=(sample_tvs[0], sample_iaes[0]),
+        xytext=(35, 12),
+        textcoords="offset points",
+        fontsize=7.2,
+        color="#333333",
+        arrowprops=dict(arrowstyle="->", lw=0.7, color="#555555"),
     )
-    plt.legend(loc="upper left", frameon=True, fontsize=9)
-    plt.grid(True, linestyle=":", alpha=0.6)
-    plt.tight_layout()
+    ax.annotate(
+        r"$\sigma = 1.0$ K (high noise)",
+        xy=(sample_tvs[-1], sample_iaes[-1]),
+        xytext=(-85, 20),
+        textcoords="offset points",
+        fontsize=7.2,
+        color="#333333",
+        arrowprops=dict(arrowstyle="->", lw=0.7, color="#555555"),
+    )
 
+    ax.set_xlabel(r"Actuator Total Variation $\mathrm{TV}$ (L/min) [Wear / Effort]", fontsize=8.5)
+    ax.set_ylabel(r"Tracking Error $\mathrm{IAE}$ (K$\cdot$min)", fontsize=8.5)
+    ax.set_title(r"Noise Sensitivity: Tracking Quality vs Actuator Wear", fontsize=9.0)
+    # A legenda em 'upper left' situa-se na região ampla e vazia (TV em [0, 400], IAE em [60, 100])
+    ax.legend(
+        loc="upper left", bbox_to_anchor=(0.04, 0.95), frameon=True, fontsize=6.8, framealpha=0.92
+    )
+    ax.grid(True, linestyle=":", alpha=0.6)
+
+    plt.tight_layout()
     fig_png = figures_dir / "fig_noise_sensitivity.png"
     fig_pdf = figures_dir / "fig_noise_sensitivity.pdf"
     plt.savefig(fig_png, dpi=300)
     plt.savefig(fig_pdf)
     plt.close()
-    logger.info("Saved noise sensitivity figures: %s and %s", fig_png, fig_pdf)
+    logger.info("Figuras salvas com sucesso em: %s e %s", fig_png, fig_pdf)
 
 
+# %% [7. Ensaio 4: Rastreamento Não-Linear em Múltiplos Pontos de Operação]
 def run_multistep_campaign(
     plant: CSTRPlant,
     ss: CSTRState,
@@ -584,27 +656,28 @@ def run_multistep_campaign(
     figures_dir: Path,
     tables_dir: Path,
 ) -> None:
-    """Evaluates non-linear multi-operating point tracking across distinct reaction regimes.
+    """Avalia o rastreamento em ampla faixa cobrindo regimes exotérmicos distintos.
+
+    Cronograma didático de transição operacional:
+    - 0 a 4 min: Ponto nominal estável (396.65 K).
+    - 4 a 10 min: Degrau para 390.0 K (regime de menor taxa reacional).
+    - 10 a 17 min: Degrau para 402.0 K (regime fortemente exotérmico, sensível a runaway térmico).
+    - 17 a 24 min: Retorno ao ponto nominal estável (396.65 K).
 
     Args:
-        plant: CSTR physical plant.
-        ss: Nominal steady-state.
-        q_j_ss: Baseline coolant flow [L/min].
-        controllers: Tuned PID gains dict.
-        limits: Actuator physical saturation limits.
-        figures_dir: Output path for plots.
-        tables_dir: Output path for LaTeX tables.
+        plant: Modelo físico do CSTR.
+        ss: Estado estacionário nominal.
+        q_j_ss: Vazão base de resfriamento.
+        controllers: Controladores PID avaliados.
+        limits: Restrições físicas da válvula.
+        figures_dir: Diretório de destino para figuras.
+        tables_dir: Diretório de destino para tabelas.
     """
-    logger.info("=== Running Multi-Operating Point Non-linear Tracking Campaign ===")
+    logger.info("=== Executando Campanha de Rastreamento em Múltiplos Pontos de Operação ===")
     sim = ClosedLoopSimulator()
     t_span = (0.0, 24.0)
     dt = 0.02
 
-    # Setpoint steps:
-    # 0 to 4 min: Nominal (396.65 K)
-    # 4 to 10 min: Step down to 390.0 K (cooling regime, lower reaction rate)
-    # 10 to 17 min: Step up to 402.0 K (strongly exothermic runaway-sensitive regime)
-    # 17 to 24 min: Return to nominal (396.65 K)
     def multistep_profile(t: float) -> float:
         if t < 4.0:
             return ss.T
@@ -654,7 +727,7 @@ def run_multistep_campaign(
         label="tab:multistep_tracking",
     )
 
-    # Plot multi-step trajectories with IEEE Single-Column Standard
+    # Geração dos gráficos IEEE em coluna única (3.5 in)
     setup_ieee_style(single_column=True)
     fig_w, fig_h = get_figure_dimensions(columns=1, height_override=3.6)
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(fig_w, fig_h), sharex=True, dpi=300)
@@ -665,7 +738,7 @@ def run_multistep_campaign(
         sample_res.setpoint,
         color=IEEE_PALETTE["Setpoint"],
         linestyle=IEEE_LINESTYLES["Setpoint"],
-        label="Target $T_{sp}$",
+        label=r"Target $T_{sp}$",
         linewidth=1.2,
     )
 
@@ -675,11 +748,15 @@ def run_multistep_campaign(
         ax1.plot(res.t, res.t_pv, label=name, color=color, linestyle=linestyle, linewidth=1.2)
         ax2.plot(res.t, res.u_applied, label=name, color=color, linestyle=linestyle, linewidth=1.2)
 
-    ax1.set_ylabel("Reactor Temp. $T$ (K)", fontsize=8.5)
+    # Subplot 1: Temperatura do reator
+    # A legenda em 'upper left' situa-se na faixa vazia (t de 0 a 8 min, T de 415 a 455 K),
+    # pois o Cohen-Coon só salta para 450 K após t=12 min na metade direita!
+    ax1.set_ylabel(r"Reactor Temp. $T$ (K)", fontsize=8.5)
     ax1.set_title("Wide-Range Multi-Operating Point Tracking", fontsize=9.0)
-    ax1.legend(loc="lower right", frameon=True, fontsize=6.8, framealpha=0.9)
+    ax1.legend(loc="upper left", frameon=True, fontsize=6.8, framealpha=0.92)
     ax1.grid(True, linestyle=":", alpha=0.6)
 
+    # Subplot 2: Vazão de fluido refrigerante com limites físicos
     ax2.axhline(
         limits.u_max,
         color=IEEE_PALETTE["Constraint"],
@@ -694,8 +771,17 @@ def run_multistep_campaign(
         linewidth=1.0,
     )
     ax2.set_ylabel(r"Coolant Flow $q_j$ (L/min)", fontsize=8.5)
-    ax2.set_xlabel("Time $t$ (min)", fontsize=8.5)
-    ax2.legend(loc="upper right", frameon=True, fontsize=6.8, framealpha=0.9)
+    ax2.set_xlabel(r"Time $t$ (min)", fontsize=8.5)
+    # Limites [-15, 345] L/min e posicionamento da legenda via bbox_to_anchor=(0.98, 0.58)
+    # situa a caixa exatamente no corredor vazio entre q_j=120 e 280 L/min para t=15 a 24 min!
+    ax2.set_ylim(-15, 345)
+    ax2.legend(
+        loc="center right",
+        bbox_to_anchor=(0.98, 0.58),
+        frameon=True,
+        fontsize=6.2,
+        framealpha=0.92,
+    )
     ax2.grid(True, linestyle=":", alpha=0.6)
 
     plt.tight_layout()
@@ -704,11 +790,12 @@ def run_multistep_campaign(
     plt.savefig(fig_png, dpi=300)
     plt.savefig(fig_pdf)
     plt.close()
-    logger.info("Saved fig5: %s and %s", fig_png, fig_pdf)
+    logger.info("Figuras salvas com sucesso em: %s e %s", fig_png, fig_pdf)
 
 
+# %% [8. Orquestrador Geral da Campanha]
 def run_campaign() -> None:
-    """Orchestrates all four experimental campaigns for Article 1."""
+    """Orquestra a execução sequencial de todas as campanhas de robustez do Artigo 1."""
     project_root = Path(__file__).resolve().parent.parent
     paper_dir = project_root / "Artigos_Rascunhos" / "Artigo_01_PID_Neural_Comparativo"
     figures_dir = paper_dir / "figures"
@@ -723,13 +810,14 @@ def run_campaign() -> None:
 
     controllers = setup_controllers(plant, ss, q_j_ss)
 
-    logger.info("Starting comprehensive robustness campaign...")
+    logger.info("Iniciando campanha experimental abrangente de robustez...")
     run_load_disturbance_campaign(plant, ss, q_j_ss, controllers, limits, figures_dir, tables_dir)
     run_fouling_campaign(plant, ss, q_j_ss, controllers, limits, figures_dir, tables_dir)
     run_noise_and_pareto_campaign(plant, ss, q_j_ss, controllers, limits, figures_dir, tables_dir)
     run_multistep_campaign(plant, ss, q_j_ss, controllers, limits, figures_dir, tables_dir)
-    logger.info("Robustness campaign finished successfully!")
+    logger.info("Campanha de robustez concluída com êxito!")
 
 
+# %% [9. Ponto de Entrada Principal]
 if __name__ == "__main__":
     run_campaign()
