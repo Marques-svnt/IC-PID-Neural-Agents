@@ -13,7 +13,6 @@ import math
 import pytest
 
 from src.evaluation.pareto import (
-    ParetoFrontierSummary,
     ParetoPoint,
     filter_pareto_front,
     find_knee_point,
@@ -22,7 +21,6 @@ from src.evaluation.pareto import (
     scalarized_objective,
     summarize_pareto_front,
 )
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
