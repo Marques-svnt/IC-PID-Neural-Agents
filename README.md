@@ -77,5 +77,5 @@ O ciclo atual (Projeto 2) é executado em **16 sprints quinzenais**:
 
 ## Autor
 
-**[Seu Nome]** — Discente IC PROIC/UESC
-Orientador: [Nome do Orientador]
+**[Gabriel Marques de Andrade]** — Discente IC PROIC/UESC
+Orientador: [Elilton Rodrigues Edwards]
