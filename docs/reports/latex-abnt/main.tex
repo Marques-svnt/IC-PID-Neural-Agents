@@ -1,0 +1,110 @@
+\documentclass[
+	12pt,
+	oneside,
+	a4paper,
+	chapter=TITLE,
+	section=TITLE,
+	english,
+	brazilian
+]{abntex2}
+
+\input{preambulo}
+
+\titulo{Contornabilidade, Saturação de Atuador e Trade-offs de Robustez no Controle PID Clássico de CSTRs Exotérmicos Altamente Não Lineares}
+\autor{Gabriel Marques de Andrade}
+\orientador{Prof.\ Dr.\ Elilton Rodrigues Edwards}
+\instituicao{Universidade Estadual de Santa Cruz -- UESC \\ Departamento de Ciências Exatas e Tecnológicas -- DCET \\ Colegiado de Engenharia Química}
+\local{Ilhéus -- Bahia}
+\data{2026}
+\tipotrabalho{Relatório Técnico-Científico}
+\preambulo{Relatório técnico-científico final apresentado ao Departamento de Ciências Exatas e Tecnológicas da Universidade Estadual de Santa Cruz (UESC), como requisito de conclusão do projeto de Iniciação Científica (PROIC/FAPESB/CNPq, Edital 34/2026).}
+
+\begin{document}
+
+\selectlanguage{brazilian}
+\frenchspacing
+
+% =============================================================================
+% ELEMENTOS PRÉ-TEXTUAIS (Sem numeração visível, contagem normal)
+% =============================================================================
+
+\imprimircapa
+\imprimirfolhaderosto
+
+\begin{resumo}
+O presente relatório investiga de forma exaustiva e rigorosa as limitações de contornabilidade, a saturação de atuadores e os compromissos de robustez no controle PID clássico de um Reator Contínuo de Tanque Agitado (CSTR) encamisado e altamente não linear, operando em regime de alta conversão ($X_A \approx 95\%$). Esse ponto de equilíbrio é caracterizado por instabilidade em malha aberta ($\lambda_1 = +0{,}284\;\si{\minute^{-1}}$) e multiplicidade estacionária explicada pelas curvas de Van Heerden. Avaliam-se as metodologias de sintonia de Ziegler-Nichols (ZN), Cohen-Coon (CC), SIMC de Skogestad e otimização por critério ITAE restrito à sensibilidade máxima ($M_s \leq 1{,}6$). Demonstra-se que métodos heurísticos clássicos falham catastroficamente ($M_p > 800\%$), enquanto SIMC e ITAE asseguram regulação estável. Adicionalmente, analisa-se a degradação da transferência térmica por incrustação (\textit{fouling}), identificando o limite termodinâmico intransponível em $\alpha = 0{,}60$, além de se construir a fronteira contínua de Pareto relacionando desempenho de rastreamento (IAE) e desgaste mecânico do atuador (TV), delimitando a região de compromisso ótimo no intervalo $\tau_c \in [0{,}25;\; 0{,}40]\;\si{\minute}$.
+
+\vspace{\onelineskip}
+\noindent
+\textbf{Palavras-chave}: Reator CSTR. Controle PID Digital. Anti-windup. Limites de Van Heerden. Fronteira de Pareto.
+\end{resumo}
+
+\begin{resumo}[Abstract]
+\begin{otherlanguage*}{english}
+This report provides an exhaustive, rigorous investigation of controllability boundaries, actuator saturation, and robustness trade-offs in classical PID control of a jacketed, highly nonlinear exothermic Continuous Stirred-Tank Reactor (CSTR) operating at high conversion ($X_A \approx 95\%$). This operating point exhibits open-loop instability ($\lambda_1 = +0.284\;\si{\minute^{-1}}$) and steady-state multiplicity governed by Van Heerden heat curves. Tuning methods including Ziegler-Nichols (ZN), Cohen-Coon (CC), Skogestad SIMC, and ITAE optimization constrained to maximum sensitivity ($M_s \leq 1.6$) are benchmarked. Classical heuristic rules fail catastrophically ($M_p > 800\%$), whereas SIMC and ITAE provide smooth, robust stabilization. Furthermore, heat transfer degradation via fouling is modeled, revealing an insurmountable thermodynamic controllability limit at $\alpha = 0.60$. A continuous Pareto frontier trading off integral tracking performance (IAE) against mechanical actuator wear (TV) is constructed, identifying the optimal compromise knee within the parameter range $\tau_c \in [0.25,\, 0.40]\;\si{\minute}$.
+
+\vspace{\onelineskip}
+\noindent
+\textbf{Keywords}: CSTR Reactor. Digital PID Control. Anti-windup. Van Heerden Limits. Pareto Frontier.
+\end{otherlanguage*}
+\end{resumo}
+
+\pdfbookmark[0]{\listfigurename}{lof}
+\listoffigures*
+\cleardoublepage
+
+\pdfbookmark[0]{\listtablename}{lot}
+\listoftables*
+\cleardoublepage
+
+\begin{siglas}
+    \item[ABNT] Associação Brasileira de Normas Técnicas
+    \item[CC] Cohen-Coon
+    \item[CSTR] \textit{Continuous Stirred-Tank Reactor} (Reator Contínuo de Tanque Agitado)
+    \item[EKF] \textit{Extended Kalman Filter} (Filtro de Kalman Estendido)
+    \item[FOPTD] \textit{First-Order Plus Time Delay} (Primeira Ordem com Tempo Morto)
+    \item[IAE] \textit{Integral Absolute Error} (Erro Absoluto Integral)
+    \item[IMC] \textit{Internal Model Control} (Controle por Modelo Interno)
+    \item[ISE] \textit{Integral Square Error} (Erro Quadrático Integral)
+    \item[ITAE] \textit{Integral Time-weighted Absolute Error} (Erro Absoluto Integral Ponderado pelo Tempo)
+    \item[NMPC] \textit{Nonlinear Model Predictive Control} (Controle Preditivo Não Linear)
+    \item[ODE] \textit{Ordinary Differential Equation} (Equação Diferencial Ordinária)
+    \item[PID] Proporcional-Integral-Derivativo
+    \item[RK45] Runge-Kutta de 4ª e 5ª ordem (Dormand-Prince)
+    \item[SIMC] \textit{Simple Control} / \textit{Skogestad Internal Model Control}
+    \item[SISO] \textit{Single-Input Single-Output} (Uma Entrada, Uma Saída)
+    \item[TV] \textit{Total Variation} (Variação Total)
+    \item[UESC] Universidade Estadual de Santa Cruz
+    \item[ZN] Ziegler-Nichols
+\end{siglas}
+\cleardoublepage
+
+\pdfbookmark[0]{\contentsname}{toc}
+\tableofcontents*
+\cleardoublepage
+
+% =============================================================================
+% ELEMENTOS TEXTUAIS (Espaçamento 1,5, numeração no topo superior direito)
+% =============================================================================
+\textual
+\OnehalfSpacing
+\pagestyle{abnttextual}
+
+\include{secoes/01_introducao_contextualizacao}
+\include{secoes/02_modelagem_termodinamica_cstr}
+\include{secoes/03_contornabilidade_limites_van_heerden}
+\include{secoes/04_arquitetura_controle_pid_antiwindup}
+\include{secoes/05_identificacao_foptd_e_sintonia}
+\include{secoes/06_benchmark_nominal_e_perturbacoes}
+\include{secoes/07_degradacao_fouling_e_fronteira_pareto}
+\include{secoes/08_conclusoes_e_trabalhos_futuros}
+
+% =============================================================================
+% ELEMENTOS PÓS-TEXTUAIS (Espaçamento simples para referências)
+% =============================================================================
+\postextual
+\SingleSpacing
+
+\bibliography{bibliografia/referencias}
+
+\end{document}

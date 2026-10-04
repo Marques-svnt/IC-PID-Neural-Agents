@@ -1,0 +1,124 @@
+% -----------------------------------------------------------------------------
+% Capítulo 3: Contornabilidade e Limites de Van Heerden
+% -----------------------------------------------------------------------------
+\chapter{Contornabilidade e Limites de Van Heerden}
+\label{cap:contornabilidade}
+
+A análise de estabilidade e controlabilidade de reatores químicos não isotérmicos, como o Reator Contínuo de Tanque Agitado (CSTR), exige uma avaliação rigorosa das limitações termodinâmicas e operacionais do sistema. Este capítulo aborda a análise de contornabilidade do CSTR sob a ótica dos diagramas de Van Heerden, estabelecendo os limites intrínsecos impostos pela planta ao sistema de controle.
+
+\section{Conceito de Contornabilidade em Sistemas SISO}
+\label{sec:contornabilidade_siso}
+
+No contexto de sistemas não lineares de única entrada e única saída (SISO - \textit{Single-Input Single-Output}), a controlabilidade estrutural refere-se à capacidade teórica de transferir o sistema de um estado inicial para um estado final desejado em tempo finito. Contudo, na engenharia de processos, a controlabilidade prática está indissociavelmente ligada à capacidade do atuador de fornecer o esforço de controle requerido sem violar suas restrições físicas \cite{Seborg2016}.
+
+Para o CSTR em estudo, a variável manipulada, $u = q_j$, que corresponde à vazão de fluido de resfriamento na camisa do reator, possui restrições físicas severas (saturação de amplitude). O envelope de operação admissível é definido pelo intervalo:
+\begin{equation}
+    u \in [u_{\min}, u_{\max}] = [\SI{0.0}{\liter\per\minute}, \SI{300.0}{\liter\per\minute}]
+\end{equation}
+A perda de controlabilidade ocorre quando, mesmo no limite superior ou inferior de atuação, o sistema é incapaz de rejeitar perturbações ou estabilizar o processo em torno de um ponto de operação termicamente instável \cite{Bequette2003}.
+
+\section{Análise de Van Heerden — Balanço Térmico Estacionário}
+\label{sec:van_heerden}
+
+A multiplicidade de estados estacionários e a estabilidade térmica do CSTR podem ser visualizadas graficamente pelo método de Van Heerden \cite{VanHeerden1953, Uppal1974}. Este método baseia-se na interseção entre a curva de geração de calor ($Q_g$) pelas reações exotérmicas e a curva de remoção de calor ($Q_r$) pelo sistema de resfriamento.
+
+A taxa de geração de calor estacionária, em função da temperatura do reator $T$, é expressa por:
+\begin{equation}
+    Q_g(T) = (-\Delta H) V k_0 \exp\left(-\frac{E}{RT}\right) C_{A,ss}(T)
+\end{equation}
+onde a concentração estacionária de reagente $C_{A,ss}(T)$ é dada por:
+\begin{equation}
+    C_{A,ss}(T) = \frac{C_{Af}}{1 + \frac{V k_0}{q} \exp\left(-\frac{E}{RT}\right)}
+\end{equation}
+
+A taxa de remoção de calor total do sistema contempla a entalpia das correntes de processo e a troca térmica através da camisa. A equação característica é descrita por:
+\begin{equation}
+    Q_r(T, q_j) = q \rho C_p (T - T_f) + UA(T - T_{j,ss})
+\end{equation}
+onde a temperatura estacionária da camisa $T_{j,ss}$ é determinada pelo balanço na camisa de resfriamento:
+\begin{equation}
+    T_{j,ss} = \frac{q_j T_{jf} + \frac{UA T}{\rho_j C_{pj} V_j}}{\frac{q_j}{V_j} + \frac{UA}{\rho_j C_{pj} V_j}}
+\end{equation}
+
+Substituindo $T_{j,ss}$, observa-se que a capacidade de resfriamento $Q_r$ possui um limite superior assintótico $Q_{r,\max}$ delimitado pela vazão máxima admissível $q_j = u_{\max} = \SI{300.0}{\liter\per\minute}$. Os estados estacionários são as raízes da equação $Q_g(T) = Q_r(T, q_j)$. Quando, para uma dada temperatura, constata-se que $Q_g(T) > Q_{r,\max}$, conclui-se que o processo perdeu a sua controlabilidade térmica e sofrerá disparo térmico (runaway) independente da ação do controlador de malha fechada.
+
+\section{Limites de Controlabilidade sob Degradação de UA}
+\label{sec:degradacao_ua}
+
+A presença de incrustação (fouling) nas paredes do reator atua como uma perturbação lenta que reduz o coeficiente global de transferência de calor, afetando diretamente a capacidade do sistema de remover calor. Define-se o coeficiente de transferência de calor efetivo $UA_{\text{eff}}$ através de um fator de degradação $\alpha \in [0, 1]$:
+\begin{equation}
+    UA_{\text{eff}} = \alpha \cdot UA_{\text{nom}}
+\end{equation}
+onde $UA_{\text{nom}}$ é o coeficiente de projeto \cite{Russo2008}. 
+
+A análise das curvas de Van Heerden revela três cenários operacionais distintos baseados na evolução de $\alpha$:
+\begin{itemize}
+    \item \textbf{Condição nominal ($\alpha = 1{,}0$)}: O sistema opera com margem substancial de resfriamento. As interseções entre $Q_g$ e $Q_r$ ocorrem de forma a garantir estabilidade local e a saturação do atuador está distante das regiões críticas de operação.
+    \item \textbf{Degradação parcial ($\alpha = 0{,}70$)}: A estabilidade do reator é mantida, entretanto com redução acentuada da margem de controle. O controlador contínuo consegue rejeitar perturbações estocásticas, mas apresenta degradação de desempenho. Há frequentes acionamentos na zona de saturação, exigindo dinâmicas de \textit{anti-windup} rigorosas.
+    \item \textbf{Limite termodinâmico crítico ($\alpha = 0{,}60$)}: Neste limiar de degradação estrutural, a curva de geração de calor $Q_g$ supera a curva de remoção máxima $Q_{r,\max}$ mesmo com a válvula de resfriamento totalmente aberta ($q_j = \SI{300.0}{\liter\per\minute}$). A ocorrência deste limite termodinâmico de controlabilidade implica que nenhum esforço de controle finito $q_j$ poderá estabilizar o reator. A fuga térmica torna-se um destino inevitável sob este regime de operação.
+\end{itemize}
+
+A \cref{fig:van_heerden} sintetiza graficamente esse fenômeno, ilustrando a transição da região de controlabilidade até a perda definitiva de estabilidade por tangência térmica.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.92\textwidth,
+    height=7.2cm,
+    xlabel={Temperatura do Reator $T$ [\si{\kelvin}]},
+    ylabel={Calor [\SI{e4}{\calorie\per\minute}]},
+    xmin=320, xmax=440,
+    ymin=0, ymax=6.5,
+    grid=both,
+    grid style={line width=.1pt, draw=gray!25},
+    major grid style={line width=.2pt, draw=gray!40},
+    legend pos=north west,
+    legend cell align={left},
+    legend style={font=\footnotesize, fill=white, fill opacity=0.9, draw=gray!40},
+    tick label style={font=\footnotesize},
+    label style={font=\small}
+]
+    % Curva de geracao Qg(T) - sigmoide exotermica
+    \addplot[domain=320:440, samples=80, line width=1.5pt, color=BrickRed]
+        {5.0 / (1.0 + exp(-0.09*(x - 380)))};
+    \addlegendentry{Calor Gerado $Q_g(T)$}
+
+    % Reta de remocao nominal alpha = 1.0 (qj = 100 L/min)
+    \addplot[domain=320:440, samples=30, line width=1.1pt, color=NavyBlue]
+        {0.045*(x - 308)};
+    \addlegendentry{Remoção Nominal ($q_{j,\text{ss}}$, $\alpha = 1{,}0$)}
+
+    % Reta de remocao maxima alpha = 1.0 (qj = 300 L/min)
+    \addplot[domain=320:440, samples=30, line width=1.0pt, dashed, color=Cerulean]
+        {0.060*(x - 302)};
+    \addlegendentry{$Q_{r,\max}$ ($\alpha = 1{,}0$, $q_{j,\max}$)}
+
+    % Reta de remocao maxima alpha = 0.70 (qj = 300 L/min)
+    \addplot[domain=320:440, samples=30, line width=1.0pt, dashed, color=ForestGreen]
+        {0.046*(x - 305)};
+    \addlegendentry{$Q_{r,\max}$ ($\alpha = 0{,}70$, $q_{j,\max}$)}
+
+    % Reta de remocao maxima critica alpha = 0.60 (qj = 300 L/min)
+    \addplot[domain=320:440, samples=30, line width=1.2pt, dashdotdotted, color=BurntOrange]
+        {0.038*(x - 310)};
+    \addlegendentry{$Q_{r,\max}$ Crítico ($\alpha = 0{,}60$, $q_{j,\max}$)}
+
+    % Ponto de operacao de alta conversao
+    \node[circle, fill=BrickRed, inner sep=2pt, pin=right:{\footnotesize $T_{\text{ss}} = 396{,}65\,\text{K}$}] 
+        at (axis cs:396.65, 4.1) {};
+\end{axis}
+\end{tikzpicture}
+\caption{Diagrama de Van Heerden para o CSTR exotérmico: curva sigmoidal de geração de calor $Q_g(T)$ confrontada com as retas de remoção térmica máxima sob diferentes níveis de degradação por incrustação ($\alpha$).}
+\label{fig:van_heerden}
+\fonte{Elaborada pelos autores (2026).}
+\end{figure}
+
+O fenômeno descrito para $\alpha=0.60$ corrobora a assertiva de que esta falha de controle não deriva de uma sintonia subótima do controlador, mas consiste em uma limitação intrínseca da planta.
+
+\section{Implicações para o Projeto de Controle}
+\label{sec:implicacoes_controle}
+
+As características termodinâmicas dissecadas mediante a análise de Van Heerden delineiam rigidamente o espaço de projeto do algoritmo de controle. A arquitetura de controle projetada deve operar estritamente dentro da fronteira do envelope de controle exequível, reconhecendo previamente que perturbações atípicas impelirão a válvula do fluido refrigerante em direção à saturação operacional.
+
+Qualquer parametrização de controle (sintonia PID) que demande transientes com amplitudes nominais $q_j$ fora do subespaço de $[0, 300]\ \si{\liter\per\minute}$ resultará inequivocamente em saturação crônica. Desse modo, evidencia-se a urgência iminente de mecanismos como compensação de limites direcionais (\textit{anti-windup}), os quais previnem que a dinâmica integral acumule erros arbitrários enquanto a planta encontra-se submetida a restrições sistêmicas irremediáveis. O projeto do controle, discutido nos capítulos subsequentes, é, portanto, fortemente balizado por esses limites físicos irrevogáveis.

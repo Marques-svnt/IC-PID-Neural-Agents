@@ -1,0 +1,95 @@
+% 02_modelagem_termodinamica_cstr.tex
+\chapter{Modelagem Termodinâmica do CSTR com Camisa de Resfriamento}
+\label{cap:modelagem}
+
+O desenvolvimento de estratégias de controle avançadas e robustas pressupõe um conhecimento rigoroso da dinâmica do processo subjacente. Este capítulo dedica-se à derivação dos modelos fenomenológicos aplicados a um reator CSTR encamisado, fundamentado nos princípios de conservação da massa e da energia \cite{Fogler2016, Seborg2016}.
+
+\section{Descrição Física do Sistema}
+\label{sec:descricao_fisica}
+
+O sistema em estudo constitui-se de um reator CSTR de mistura perfeita volumetricamente constante ($V = 100\ \si{\liter}$), circundado por uma camisa de resfriamento ($V_j = 20\ \si{\liter}$). O interior do reator alberga a reação química elementar irreversível de primeira ordem $A \to B$. As correntes de alimentação consistem na introdução de reagente puro com vazão volumétrica constante, promovendo a renovação do volume reacional. O controle de temperatura do reator operacionaliza-se primariamente pela manipulação da vazão volumétrica do líquido de resfriamento ($q_j$) bombeado através da camisa acoplada ao vaso de reação \cite{Bequette2003, Luyben2007}. Considera-se perfeita a agitação tanto do fluido de processo quanto do fluido refrigerante, admitindo-se homogeneidade espacial da concentração de espécies químicas e da temperatura \cite{Smith2005}.
+
+\section{Balanço de Massa}
+\label{sec:balanco_massa}
+
+O balanço material das espécies moleculares obedece ao axioma de conservação macroscópica em um volume de controle, expresso pela taxa de acúmulo igualando a diferença entre as taxas de entrada e saída, subtraída pela taxa de consumo cinético no caso do reagente limite $A$. Sendo constante o volume reacional $V$ e a vazão volumétrica processual $q$, o balanço de massa para a concentração do reagente $A$ ($C_A$) formaliza-se por:
+\begin{equation}
+\label{eq:balanco_massa}
+\frac{dC_A}{dt} = \frac{q}{V}(C_{Af} - C_A) - k_0 \exp\left(-\frac{E}{RT}\right) C_A
+\end{equation}
+onde $C_{Af}$ denota a concentração de alimentação, $k_0 \exp(-E/RT)$ modela a constante cinética dependente da temperatura reacional $T$, e a assunção de mistura perfeita valida que a concentração de saída seja intrinsecamente equivalente à concentração contida no vaso de reação.
+
+\section{Balanço de Energia do Reator}
+\label{sec:balanco_energia_reator}
+
+Analisando a termodinâmica global da mistura reacional, formula-se o balanço de energia desconsiderando-se a contribuição energética atrelada ao trabalho do eixo do agitador e variações de energia mecânica. Assumindo-se propriedades termofísicas imutáveis, como a densidade ($\rho$) e a capacidade calorífica específica isotérmica ($C_p$), o balanço de entalpia macroscópico é definido como:
+\begin{equation}
+\label{eq:balanco_energia_reator}
+\frac{dT}{dt} = \frac{q}{V}(T_f - T) + \frac{(-\Delta H)}{\rho C_p} k_0 \exp\left(-\frac{E}{RT}\right) C_A - \frac{UA}{V \rho C_p}(T - T_j)
+\end{equation}
+Nesta equação, a variação térmica $\frac{dT}{dt}$ resulta da superposição de três parcelas fundamentais: a dinâmica advectiva dependente da temperatura de alimentação $T_f$; o ganho de calor de reação proporcional à entalpia padrão $(-\Delta H)$; e a parcela difusiva-convectiva de extração de calor pela camisa de resfriamento, governada pelo coeficiente global de transferência de calor ($U$), pela área superficial de troca térmica ($A$) e pelo gradiente térmico $(T - T_j)$ inter-interfaces \cite{Fogler2016}.
+
+\section{Balanço de Energia da Camisa}
+\label{sec:balanco_energia_camisa}
+
+O subsistema de refrigeração impõe um balanço térmico no fluido refrigerante para determinar a evolução temporal da temperatura da camisa ($T_j$). De forma análoga e pressupondo densidade ($\rho_j$) e capacidade calorífica ($C_{pj}$) da camisa de resfriamento como constantes, bem como um estado de mistura ideal no volume $V_j$, atinge-se o balanço expresso pela Equação \ref{eq:balanco_energia_camisa}:
+\begin{equation}
+\label{eq:balanco_energia_camisa}
+\frac{dT_j}{dt} = \frac{q_j}{V_j}(T_{jf} - T_j) + \frac{UA}{V_j \rho_j C_{pj}}(T - T_j)
+\end{equation}
+sendo $T_{jf}$ a temperatura de alimentação do fluido refrigerante, e $q_j$ sua vazão volumétrica, classicamente eleita como a variável manipulada da malha fechada do controlador de temperatura do reator.
+
+\section{Cinética de Arrhenius}
+\label{sec:cinetica_arrhenius}
+
+A não-linearidade preponderante na operação do CSTR advém da sensitividade estocástica da taxa reacional. A dependência termo-cinética segue a premissa descrita pelo modelo de colisão de Arrhenius, expresso por $r_A = k_0 \exp\left(-\frac{E}{RT}\right) C_A$. O fator pré-exponencial de colisão ($k_0$) e a energia de ativação ($E$) denotam parâmetros estáticos, com $R$ figurando como a constante universal dos gases ideais. A natureza exponencial acarreta uma elevação drástica na taxa reacional $r_A$ em decorrência de variações em $T$, gerando maiores flutuações entálpicas, requerendo do controlador uma margem de fase adaptável em elevadas temperaturas.
+
+\section{Parâmetros Nominais do Processo}
+\label{sec:parametros_nominais}
+
+O arcabouço metodológico deste estudo adota valores representativos da literatura para a simulação do CSTR em apreço \cite{Bequette2003}. A Tabela \ref{tab:parametros_nominais} elucida com precisão o conjunto completo de condições de alimentação físicas e cinéticas, garantindo a reprodução exata dos autovalores e estabilidades assintóticas obtidos nas análises de viabilidade que permeiam o texto.
+
+\begin{table}[htbp]
+\centering
+\caption{Valores numéricos e especificações dos parâmetros termodinâmicos, cinéticos e operacionais do CSTR investigado.}
+\label{tab:parametros_nominais}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Parâmetro} & \textbf{Descrição Física} & \textbf{Valor Nominal} \\
+\midrule
+$V$ & Volume reacional & \SI{100}{\liter} \\
+$V_j$ & Volume da camisa de resfriamento & \SI{20}{\liter} \\
+$q$ & Vazão de alimentação processual & \SI{100}{\liter\per\minute} \\
+$C_{Af}$ & Concentração de entrada do reagente A & \SI{1.0}{\molar\per\liter} \\
+$T_f$ & Temperatura da corrente de entrada & \SI{350}{\kelvin} \\
+$T_{jf}$ & Temperatura de alimentação da camisa & \SI{300}{\kelvin} \\
+$k_0$ & Fator pré-exponencial cinético & \SI{7.2e10}{\minute^{-1}} \\
+$E/R$ & Razão energia de ativação / const. dos gases & \SI{8750}{\kelvin} \\
+$-\Delta H$ & Entalpia de reação (exotérmica) & \SI{5.0e4}{\calorie\per\molar} \\
+$\rho C_p = \rho_j C_{pj}$ & Capacidades térmicas volumétricas & \SI{500}{\calorie\per\liter\per\kelvin} \\
+$UA$ & Coeficiente global de transferência de calor & \SI{5.0e4}{\calorie\per\minute\per\kelvin} \\
+$q_{j,ss}$ & Vazão de refrigeração no estado estacionário & \SI{100}{\liter\per\minute} \\
+\bottomrule
+\end{tabular}
+\fonte{Adaptado de Bequette \cite{Bequette2003}.}
+\end{table}
+
+\section{Pontos de Equilíbrio e Multiplicidade}
+\label{sec:equilibrio_multiplicidade}
+
+A complexidade operacional dos reatores em leque contínuo desvela-se na constatação empírica e analítica da ocorrência de multiplicidade de estados estacionários. Iguala-se o campo de derivadas ordinárias a zero (\textit{steady-state}), i.e., $\frac{dC_A}{dt} = \frac{dT}{dt} = \frac{dT_j}{dt} = 0$. Sob a parametrização nominal descrita na Seção \ref{sec:parametros_nominais}, o sistema não-linear suporta a existência e bifurcação de três distintas soluções de equilíbrio: um estado inativo (baixa temperatura e conversão quase nula), um estado intermediário instável, e um estado ativo (região auto-térmica ascendente). 
+
+Com enfoque prático no suprimento otimizado do maquinário industrial, opta-se deliberadamente pelo ponto correspondente a uma operação de alta conversão, especificado pelas raízes analíticas simultâneas:
+\begin{itemize}
+    \item $C_{A,ss} = 0,0502\ \si{\mole\per\liter}$
+    \item $T_{ss} = 396,65\ \si{\kelvin}$
+    \item $T_{j,ss} = 348,33\ \si{\kelvin}$
+\end{itemize}
+Este ponto induz uma conversão fracional formidável do material bruto de ingresso, calculada por $X_A = (C_{Af} - C_{A,ss})/C_{Af} \approx 95,0\%$.
+
+\section{Linearização e Análise de Estabilidade Local}
+\label{sec:linearizacao}
+
+Avaliando-se os critérios assintóticos de estabilidade, computam-se os elementos da matriz Jacobiana, derivada dos polinômios multidimensionais de Taylor avaliados na vizinhança topológica do estado de alta conversão ($X_A \approx 95,0\%$). Ao resolver a equação secular característica baseada nas determinantes locais, desponta-se a composição estrutural dos autovalores do subsistema. 
+
+As determinações algébricas revelam a presença de ao menos um autovalor positivo pertencente ao espectro matricial ($\lambda_1 = +0,284\ \si{\minute^{-1}}$), enquadrando assim o sistema como estruturalmente instável em malha aberta do tipo \textit{saddle-point} dinâmico. Fisicamente, essa métrica quantifica a vulnerabilidade da configuração. O calor gerado na síntese química supera momentaneamente o descarte exergético das camadas isotérmicas vizinhas. A implicação direta reside na indispensabilidade de técnicas incisivas do ramo da Teoria de Controle de Feedback a fim de assegurar o domínio das raízes de instabilidade originadas pela matriz operacional e abrigar o CSTR de eventuais fenômenos catastróficos vinculados ao \textit{thermal runaway}.

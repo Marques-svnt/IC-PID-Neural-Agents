@@ -1,0 +1,115 @@
+\providecommand{\abntreprintinfo}[1]{%
+ \citeonline{#1}}
+\setlength{\labelsep}{0pt}\begin{thebibliography}{}
+\providecommand{\abntrefinfo}[3]{}
+\providecommand{\abntbstabout}[1]{}
+\abntbstabout{v-1.9.7 }
+
+\bibitem[{\AA}str{\"o}m e H{\"a}gglund 2006]{Astrom2006}
+\abntrefinfo{{\AA}str{\"o}m e H{\"a}gglund}{{\AA}STR{\"O}M; H{\"A}GGLUND}{2006}
+{{\AA}STR{\"O}M, K.~J.; H{\"A}GGLUND, T. \emph{Advanced PID Control}. Research
+  Triangle Park, NC: ISA - The Instrumentation, Systems, and Automation
+  Society, 2006.}
+
+\bibitem[Bequette 2003]{Bequette2003}
+\abntrefinfo{Bequette}{BEQUETTE}{2003}
+{BEQUETTE, B.~W. \emph{Process Control: Modeling, Design, and Simulation}.
+  Upper Saddle River, NJ: Prentice Hall, 2003.}
+
+\bibitem[Cohen e Coon 1953]{CohenCoon1953}
+\abntrefinfo{Cohen e Coon}{COHEN; COON}{1953}
+{COHEN, G.~H.; COON, G.~A. Theoretical consideration of retarded control.
+\emph{Transactions of the ASME}, v.~75, p. 827--834, 1953.}
+
+\bibitem[Coughanowr e LeBlanc 2009]{Coughanowr2009}
+\abntrefinfo{Coughanowr e LeBlanc}{COUGHANOWR; LEBLANC}{2009}
+{COUGHANOWR, D.~R.; LEBLANC, S.~E. \emph{Process Systems Analysis and Control}.
+  3. ed. New York, NY: McGraw-Hill, 2009.}
+
+\bibitem[Fogler 2016]{Fogler2016}
+\abntrefinfo{Fogler}{FOGLER}{2016}
+{FOGLER, H.~S. \emph{Elements of Chemical Reaction Engineering}. 5. ed. Upper
+  Saddle River, NJ: Prentice Hall, 2016.}
+
+\bibitem[Khalil 2002]{Khalil2002}
+\abntrefinfo{Khalil}{KHALIL}{2002}
+{KHALIL, H.~K. \emph{Nonlinear Systems}. 3. ed. Upper Saddle River, NJ:
+  Prentice Hall, 2002.}
+
+\bibitem[Luyben 2007]{Luyben2007}
+\abntrefinfo{Luyben}{LUYBEN}{2007}
+{LUYBEN, W.~L. \emph{Chemical Reactor Design and Control}. Hoboken, NJ: John
+  Wiley \& Sons, 2007.}
+
+\bibitem[Marlin 2000]{Marlin2000}
+\abntrefinfo{Marlin}{MARLIN}{2000}
+{MARLIN, T.~E. \emph{Process Control: Designing Processes and Control Systems
+  for Dynamic Performance}. 2. ed. New York, NY: McGraw-Hill, 2000.}
+
+\bibitem[Morari e Zafiriou 1989]{Morari1989}
+\abntrefinfo{Morari e Zafiriou}{MORARI; ZAFIRIOU}{1989}
+{MORARI, M.; ZAFIRIOU, E. \emph{Robust Process Control}. Englewood Cliffs, NJ:
+  Prentice Hall, 1989.}
+
+\bibitem[Rawlings, Mayne e Diehl 2017]{Rawlings2017}
+\abntrefinfo{Rawlings, Mayne e Diehl}{RAWLINGS; MAYNE; DIEHL}{2017}
+{RAWLINGS, J.~B.; MAYNE, D.~Q.; DIEHL, M. \emph{Model Predictive Control:
+  Theory, Computation, and Design}. 2. ed. Madison, WI: Nob Hill Publishing,
+  2017.}
+
+\bibitem[Rivera, Morari e Skogestad 1986]{Rivera1986}
+\abntrefinfo{Rivera, Morari e Skogestad}{RIVERA; MORARI; SKOGESTAD}{1986}
+{RIVERA, D.~E.; MORARI, M.; SKOGESTAD, S. Internal model control. 4. pid
+  controller design.
+\emph{Industrial \& Engineering Chemistry Process Design and Development},
+  v.~25, n.~1, p. 252--265, 1986.}
+
+\bibitem[Russo e Bequette 1995]{Russo2008}
+\abntrefinfo{Russo e Bequette}{RUSSO; BEQUETTE}{1995}
+{RUSSO, L.~P.; BEQUETTE, B.~W. Impact of process design on the multiplicity
+  behavior of a continuous stirred tank reactor.
+\emph{AIChE Journal}, v.~41, n.~1, p. 135--147, 1995.
+(Updated/referenced 2008).}
+
+\bibitem[Seborg et al. 2016]{Seborg2016}
+\abntrefinfo{Seborg et al.}{SEBORG et al.}{2016}
+{SEBORG, D.~E. et al. \emph{Process Dynamics and Control}. 4. ed. Hoboken, NJ:
+  John Wiley \& Sons, 2016.}
+
+\bibitem[Shinskey 1996]{Shinskey1996}
+\abntrefinfo{Shinskey}{SHINSKEY}{1996}
+{SHINSKEY, F.~G. \emph{Process Control Systems: Application, Design, and
+  Tuning}. 4. ed. New York, NY: McGraw-Hill, 1996.}
+
+\bibitem[Skogestad 2003]{Skogestad2003}
+\abntrefinfo{Skogestad}{SKOGESTAD}{2003}
+{SKOGESTAD, S. Simple analytic rules for model reduction and pid controller
+  tuning.
+\emph{Journal of Process Control}, v.~13, n.~4, p. 291--309, 2003.}
+
+\bibitem[Smith e Corripio 2005]{Smith2005}
+\abntrefinfo{Smith e Corripio}{SMITH; CORRIPIO}{2005}
+{SMITH, C.~A.; CORRIPIO, A.~B. \emph{Principles and Practice of Automatic
+  Process Control}. 3. ed. Hoboken, NJ: John Wiley \& Sons, 2005.}
+
+\bibitem[Uppal, Ray e Poore 1974]{Uppal1974}
+\abntrefinfo{Uppal, Ray e Poore}{UPPAL; RAY; POORE}{1974}
+{UPPAL, A.; RAY, W.~H.; POORE, A.~B. On the dynamic behavior of continuous
+  stirred tank reactors.
+\emph{Chemical Engineering Science}, v.~29, n.~4, p. 967--985, 1974.}
+
+\bibitem[{VAN HEERDEN} 1953]{VanHeerden1953}
+\abntrefinfo{{VAN HEERDEN}}{{VAN HEERDEN}}{1953}
+{{VAN HEERDEN}, C. Autothermic processes.
+\emph{Industrial \& Engineering Chemistry}, v.~45, n.~6, p. 1242--1247, 1953.}
+
+\bibitem[Visioli 2006]{Visioli2006}
+\abntrefinfo{Visioli}{VISIOLI}{2006}
+{VISIOLI, A. \emph{Practical PID Control}. London, UK: Springer, 2006.}
+
+\bibitem[Ziegler e Nichols 1942]{ZieglerNichols1942}
+\abntrefinfo{Ziegler e Nichols}{ZIEGLER; NICHOLS}{1942}
+{ZIEGLER, J.~G.; NICHOLS, N.~B. Optimum settings for automatic controllers.
+\emph{Transactions of the ASME}, v.~64, p. 759--768, 1942.}
+
+\end{thebibliography}

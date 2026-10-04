@@ -1,0 +1,29 @@
+% 01_introducao_contextualizacao.tex
+\chapter{Introdução e Contextualização}
+\label{cap:introducao}
+
+O reator contínuo de tanque agitado (CSTR, do inglês \textit{Continuous Stirred-Tank Reactor}) representa um dos equipamentos industriais de maior relevância nos processos químicos, petroquímicos e farmacêuticos \cite{Bequette2003, Luyben2007}. A complexidade inerente ao controle de reatores CSTR em que ocorrem reações exotérmicas deve-se, substancialmente, ao mecanismo de retroalimentação térmica positiva (auto-catálise térmica). À medida que a temperatura se eleva, a taxa de reação aumenta exponencialmente, gerando mais calor. Esse fenômeno introduz instabilidades operacionais críticas que exigem intervenções ativas de controle para evitar episódios de \textit{thermal runaway} (fuga térmica) e garantir a segurança e a viabilidade econômica do processo \cite{Seborg2016}.
+
+O problema central abordado neste trabalho concentra-se na operação do reator em um estado estacionário de alta conversão ($X_A \approx 95\%$). Operar nesta região de máximo rendimento confina a dinâmica do sistema a uma região instável em malha aberta, caracterizada pela presença de um autovalor positivo no modelo linearizado ($\lambda_1 = +0,284\ \si{\minute^{-1}}$). Essa instabilidade de malha aberta induz limitações fundamentais (\textit{fundamental trade-offs}) nas estratégias de regulação \cite{VanHeerden1953, Uppal1974}. Na tentativa de estabilizar a planta e suprimir perturbações, emerge um delicado compromisso entre o desempenho do rastreamento de referência, a robustez a incertezas do modelo e o esforço (ou desgaste) dos atuadores \cite{Marlin2000, Smith2005}.
+
+A despeito dos expressivos avanços em técnicas de controle preditivo e não-linear nas últimas décadas, a arquitetura clássica do controlador Proporcional-Integral-Derivativo (PID) continua sendo a espinha dorsal da automação industrial, perfazendo aproximadamente 95\% das malhas de controle implementadas na indústria de processos \cite{Astrom2006}. A compreensão exaustiva dos limites teóricos e operacionais do controle PID aplicado a plantas fortemente não-lineares e instáveis afigura-se como uma etapa indispensável antes da síntese e da eventual implantação de técnicas de controle avançado. Avaliar rigorosamente as fronteiras de controlabilidade do PID fornece a linha de base necessária para justificar o custo computacional e de engenharia atrelado a estratégias mais elaboradas.
+
+\section{Objetivos}
+\label{sec:objetivos}
+
+O presente estudo possui como objetivo geral a investigação pormenorizada das fronteiras de controlabilidade, dos efeitos de saturação no atuador e dos compromissos de robustez inerentes à aplicação do controle PID a um CSTR exotérmico de primeira ordem que opera em um ponto de equilíbrio instável de alta conversão.
+
+Para a consecução do objetivo geral, estabelecem-se os seguintes objetivos específicos:
+\begin{itemize}
+    \item Derivar analiticamente o modelo matemático não-linear fenomenológico do CSTR, acoplado à dinâmica térmica da camisa de resfriamento.
+    \item Analisar os limites de estabilidade termodinâmica postulados por \citeonline{VanHeerden1953} mediante o estudo da multiplicidade de estados estacionários.
+    \item Projetar controladores PID providos de mecanismos de \textit{anti-windup} (compensação de saturação do integrador), submetidos a restrições realistas nas válvulas de vazão do fluido refrigerante.
+    \item Desenvolver um estudo comparativo abrangente entre as consolidadas metodologias de sintonia: Ziegler-Nichols (ZN), Cohen-Coon (CC), SIMC (Skogestad Internal Model Control) e critérios baseados na integral do tempo ponderado pelo erro absoluto (ITAE).
+    \item Avaliar a degradação de desempenho da malha de controle face a perturbações paramétricas, como o efeito de incrustação térmica (\textit{fouling}) na área de troca de calor ao longo da campanha operacional.
+    \item Construir e analisar a fronteira de Pareto, avaliando o compromisso entre o erro integral absoluto (IAE) e a variação total na variável manipulada (\textit{Total Variation} - TV).
+\end{itemize}
+
+\section{Estrutura do Relatório}
+\label{sec:estrutura}
+
+A organização subjacente a este documento reflete o encadeamento metodológico descrito. O \cref{cap:introducao} apresenta a formulação do problema, as motivações do estudo e as metas propostas. No \cref{cap:modelagem}, deduz-se o modelo fenomenológico (balanços de massa e energia) do CSTR encamisado, delineando-se os parâmetros termodinâmicos, cinéticos e a análise de estabilidade local por linearização. O \cref{cap:contornabilidade} aprofunda-se na análise de Van Heerden e nos limites termodinâmicos de controlabilidade. O \cref{cap:arquitetura_pid} descreve a arquitetura do controlador PID discreto com \textit{anti-windup} sob restrições de saturação e \textit{slew-rate}. O \cref{cap:identificacao_sintonia} aborda a identificação do modelo FOPTD e a avaliação comparativa dos métodos de sintonia. No \cref{cap:benchmark}, apresentam-se os resultados de simulação nominal e sob perturbações. O \cref{cap:fouling_pareto} analisa a degradação por \textit{fouling} e constrói a fronteira de Pareto. Por fim, o \cref{cap:conclusoes} sintetiza as contribuições e indica os trabalhos futuros.

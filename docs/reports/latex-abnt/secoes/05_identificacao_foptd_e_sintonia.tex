@@ -1,0 +1,83 @@
+% -----------------------------------------------------------------------------
+% Capítulo 5: Identificação FOPTD e Métodos de Sintonia
+% -----------------------------------------------------------------------------
+\chapter{Identificação FOPTD e Métodos de Sintonia}
+\label{cap:identificacao_sintonia}
+
+A obtenção de um desempenho exímio de malha fechada demanda inexoravelmente um arcabouço empírico para o dimensionamento dos ganhos do controlador. Neste escopo, este capítulo relata a identificação do modelo paramétrico fenomenológico do reator na forma linearizada sob teste de degrau em malha aberta e subsequente desenvolvimento crítico dos métodos rigorosos para sintonia paramétrica PID aplicáveis ao CSTR.
+
+\section{Modelo de Primeira Ordem com Atraso (FOPTD)}
+\label{sec:modelo_foptd}
+
+Processos químicos complexos não-lineares, quando restritos a vizinhanças limitadas ao redor de seus pontos estacionários, frequentemente se adequam ao modelo empírico de Primeira Ordem Mais Tempo Morto (FOPTD - \textit{First-Order Plus Time Delay}). A função de transferência característica $G(s)$ vinculando a perturbação na variável manipulada à resposta na variável controlada é postulada no domínio de Laplace como:
+\begin{equation}
+    G(s) = \frac{K e^{-\theta s}}{\tau s + 1}
+\end{equation}
+
+Com as dinâmicas operacionais coligidas via excitações de degrau perante os regimes abertos estacionários da unidade do CSTR, os valores dimensionais parametrizados identificados resultaram em: 
+ganho estático do processo $K = \SI{-0.1582}{\kelvin\per(\liter\per\minute)}$,
+constante de tempo dominante $\tau = \SI{1.096}{\minute}$,
+e atraso de tempo inercial de transporte puro $\theta = \SI{0.093}{\minute}$.
+
+Aferindo-se a controlabilidade da planta na dependência deste fator por meio do quociente $r = \theta/\tau = 0.085$, nota-se que $r \ll 1$. Analiticamente, um índice tão exíguo conota um forte predomínio inercial dominante intrínseco (\textit{lag-dominant system}), provando que a influência das dinâmicas estritamente derivativas tende a ser pífia no encurtamento do tempo de resposta perante a imperatividade das extensões da ação proporcional-integral \cite{Astrom2006}.
+
+\section{Método de Ziegler-Nichols (Malha Aberta)}
+\label{sec:ziegler_nichols}
+
+A consolidação mais histórica da sintonia advém dos rudimentos elaborados via resposta ao degrau \cite{ZieglerNichols1942}. As equações primitivas do método de malha aberta formulam-se por:
+\begin{equation}
+    K_p = \frac{1.2 \tau}{K \theta}, \quad T_i = 2\theta, \quad T_d = 0.5\theta
+\end{equation}
+em que se obtêm os ganhos implícitos $K_i = K_p/T_i$ e $K_d = K_p \cdot T_d$.
+
+Aplicando-se os valores extraídos, atinge-se o equacionamento para o CSTR, com $K_p = -44.56$, $T_i = \SI{0.19}{\minute}$ e $T_d = \SI{0.047}{\minute}$. Salienta-se o rigor analítico com que se infere tal constatação: o postulado heurístico primário de Ziegler-Nichols priorizou a obtenção da razão de declínio marginal de um quarto (1/4 \textit{decay ratio}), originando assim atuações acentuadamente agressivas. Confrontando cenários instáveis termodinamicamente sob fortes limitações de amplitude restritiva operada pela válvula (aqui $300\ \si{\liter\per\minute}$), esse parâmetro resulta em desempenho catastroficamente agressivo \cite{Rivera1986}.
+
+\section{Método de Cohen-Coon}
+\label{sec:cohen_coon}
+
+Na tentativa de atenuar a inadequação sistemática oriunda das generalidades de processos com dinâmicas subjacentes de atrasos significativos de transporte moderado, avaliou-se adicionalmente o ajuste metodológico empírico contornando restrições de controle, estipulado pelo método Cohen-Coon \cite{CohenCoon1953, Seborg2016}. 
+Contudo, de posse das equações preditivas para PID, estabeleceram-se as novas margens $K_p = -50.86$, $T_i = \SI{0.22}{\minute}$, e $T_d = \SI{0.033}{\minute}$. Apesar de refinada a robustez para instabilidade, demonstrou-se em simulações que tais vetores parametrizados permaneceram, ainda, severamente agressivos à exequibilidade dinâmica na fronteira de saturações operantes físicas para um sistema fortemente restrito como este.
+
+\section{Método SIMC de Skogestad}
+\label{sec:simc}
+
+Propondo a reversão do cenário instável predominante nas sintonias clássicas agressivas abordadas, utilizou-se a formulação algébrica analítica simplificada do Internal Model Control (SIMC) \cite{Skogestad2003}. O diferencial basilar consiste na manipulação monovariável de sintonia regida essencialmente por um único parâmetro heurístico selecionável $\tau_c$ (a constante de tempo de malha fechada almejada).
+As relações simplificadas ditam:
+\begin{equation}
+    K_p = \frac{\tau}{K(\tau_c + \theta)}, \quad T_i = \min(\tau, 4(\tau_c + \theta)), \quad T_d = \frac{\theta}{2} \ \ (\text{aproximado para PID})
+\end{equation}
+
+Sob imposição deliberadamente acauteladora, definindo a constante $\tau_c = \SI{0.40}{\minute}$, extraem-se os vetores paramétricos calculados: $K_p = -7.03$ (ação fundamentalmente reversa em decorrência de $K < 0$), e os termos temporais fixados em $T_i = \SI{0.64}{\minute}$ e $T_d = \SI{0.031}{\minute}$. Observa-se que a sintonia infere reações significativamente conservadoras com supressão branda à exacerbação harmônica agressiva de \textit{overshoots} nocivos termodinamicamente. O parâmetro $\tau_c$ assimila explicitamente o balanço empírico sopesando o escambo entre resposta em malha temporal mitigada vis-à-vis ao robustecimento físico intrínseco.
+
+\section{Sintonia ITAE Ótima com Restrição de Robustez}
+\label{sec:itae_otimo}
+
+Objetivando um equacionamento analiticamente determinístico refinado que prescinda empirismos marginais, elaborou-se o modelo unificado de otimização pela função-custo pautada no Critério do Erro Absoluto Ponderado pelo Tempo Integral (\textit{Integral of Time-Weighted Absolute Error} - ITAE) \cite{Marlin2000}:
+\begin{equation}
+    \min \text{ITAE} = \int_{0}^{\infty} t |e(t)| dt
+\end{equation}
+associado intrinsecamente a restrições tangenciais não-lineares severas para a função de sensibilidade pico $M_s \le 1.6$, que providencia um indexador acoplado de segurança limitante perante instabilidades \cite{Astrom2006}.
+
+Em decorrência do algoritmo robusto de otimização, convergiram-se as parametrizações do controlador ITAE a fim de assumir a constatação vetorial contida: $K_p = -14.21$, $T_i = \SI{1.00}{\minute}$, e $T_d = \SI{0.001}{\minute}$. Com efeito prático pífio da parcela temporal derivativa, a arquitetura restringe-se primariamente sob regime fundamental de malha estrita do controlador Proporcional-Integral (PI). Outrossim, o limite operante de segurança limitou-se expressamente ao valor exíguo $M_s = 1.24$, demonstrando matematicamente não colidir fronteiras constritivas críticas. A penalização inerente pelo lapso cronológico sob a métrica ITAE confere transientes subamortecidos razoavelmente amenos, propiciando um amortecimento otimizado perante tempos de assentamento estendidos comparativamente aos índices restritos puros do \textit{Integral Absolute Error} (IAE).
+
+\section{Tabela Comparativa de Parâmetros de Sintonia}
+\label{sec:tabela_comparativa}
+
+Face aos balanços extraídos pelas formulações descritas sob o arranjo teórico comparativo, a síntese unificadora contendo avaliações classificatórias sobre os quatro métodos primários propostos acha-se delineada concisamente junto à \autoref{tab:sintonia_pid}.
+
+\begin{table}[htpb]
+\centering
+\caption{Parâmetros de sintonia PID calculados para o modelo do CSTR pelos diferentes métodos.}
+\label{tab:sintonia_pid}
+\begin{tabular}{@{}lrrrrrl@{}}
+\toprule
+\textbf{Método} & \textbf{$K_p$} & \textbf{$T_i$ [\si{\minute}]} & \textbf{$T_d$ [\si{\minute}]} & \textbf{$K_i$} & \textbf{$K_d$} & \textbf{Classificação} \\ 
+\midrule
+Ziegler-Nichols           & $-44{,}56$ & $0{,}19$ & $0{,}047$ & $-234{,}53$ & $-2{,}09$ & Agressivo \\
+Cohen-Coon                & $-50{,}86$ & $0{,}22$ & $0{,}033$ & $-231{,}18$ & $-1{,}68$ & Agressivo \\
+SIMC ($\tau_c = \SI{0.40}{\minute}$) & $-7{,}03$  & $0{,}64$ & $0{,}031$ & $-10{,}98$  & $-0{,}22$ & Conservador \\
+ITAE Ótimo                & $-14{,}21$ & $1{,}00$ & $0{,}001$ & $-14{,}21$  & $-0{,}01$ & Moderado \\ 
+\bottomrule
+\end{tabular}
+\fonte{Elaborada pelos autores (2026).}
+\end{table}

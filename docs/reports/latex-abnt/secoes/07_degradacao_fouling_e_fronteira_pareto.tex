@@ -1,0 +1,125 @@
+\chapter{Degradação por Fouling e Fronteira de Pareto}
+\label{cap:fouling_pareto}
+
+Este capítulo investiga o fenômeno deletério de deposição na superfície da jaqueta do reator (\textit{fouling}), o qual conduz a constrições severas de transferência térmica e inviabiliza as condições primárias de controlabilidade, bem como a avaliação rigorosa do compromisso funcional através da fronteira de Pareto ótima.
+
+\section{Modelagem do Encrustamento Térmico (Fouling)}
+\label{sec:modelagem_fouling}
+
+Fenômenos progressivos de encrustamento de camadas inertes nas superfícies condutivas impõem drásticas penalidades operacionais. Esta resistência parazita é refletida no decremento global do coeficiente convectivo aparente (efetivo) expresso pela formulação $UA_{\text{eff}} = \alpha \cdot UA_{\text{nom}}$, onde $\alpha \in (0, 1]$ figura como o parâmetro adimensional de depletamento das restrições metálicas.
+
+Em sua representação física, os filmes adicionais representam acréscimos severos de resistência térmica local $R_f$, seguindo o postulado aditivo para resistências térmicas limitantes \cite{Coughanowr2009}:
+\begin{equation}
+    \frac{1}{UA_{\text{eff}}} = \frac{1}{UA_{\text{nom}}} + \frac{R_f}{A}
+\end{equation}
+
+Esta deterioração agrava-se progressivamente por meio do envelhecimento natural subjacente ao processo produtivo na planta industrial química de base. Simula-se portanto estados interinos variando do modelo ideal com $\alpha = 1.0$ (tubos higienizados), passando pelas margens seguras limítrofes com encrustação moderada ($\alpha = 0.70$) e as degenerações agudas atingidas aos contornos comutativos de colapso termodinâmico em $\alpha = 0.60$.
+
+\section{Impacto na Resposta em Malha Fechada}
+\label{sec:impacto_malha_fechada}
+
+A propagação inercial dessas impurezas apresenta-se formidavelmente destrutiva contra o invólucro do sistema projetado \cite{Russo2008}. Ao aferirmos $\alpha = 1.0$, desfrutamos das propriedades perfeitas do sistema ótimo aferido empiricamente na seção pregressa (IAE na margem de \num{0.89}).
+
+Considerando o transcurso dinâmico à região operacional denotada por encrustações limitantes em $\alpha = 0.70$, certifica-se empiricamente o funcionamento ativo do controlador linear retroalimentativo. Registram-se dilatações integrais próximas a \SI{250}{\percent} dos patamares idílicos ($2.5\times$ base nominal). O esforço de restrição para acomodação expande os requerimentos em TV proporcionalmente à deficiência manifestada, implicando oscilações acentuadas do manipulador. Não obstante o estresse severo, as trajetórias encontram-se rigorosamente confinadas nos parâmetros topológicos passíveis da governança retroativa.
+
+Em contraponto dramático, ao reduzir a condutividade até o índice basal empírico crítico correspondente a $\alpha = 0.60$, alcança-se peremptoriamente as margens de termodinâmica inviolável ou de estrangulamento da dinâmica entálpica. Postulando a injeção ininterrupta total da capacidade refrigerante limite predefinida ($q_j = u_{\max} = \SI{300}{\liter\per\minute}$), o somatório convectivo das perdas de calor transferido de forma forçada ($Q_{r,\max}$) não atinge magnitudes correspondentes as prementes taxas exotérmicas ($Q_g$) para a faixa térmica investigada da reação autoacelerante contínua. Por implicação física direta sob as estipulações de restrições rígidas das coordenadas de transferência em superfícies reacionais complexas de Van Heerden \cite{VanHeerden1953}, o descontrole em instabilidade e ignição contínua reacional \textit{thermal runaway} são axiomas matematicamente incontornáveis \cite{Luyben2007}. A restrição evidenciada pertence à gênese inerente do reator estrutural, não de um limite de controlabilidade, demonstrando fundamentalmente o aspecto da restrição mecânica que foge dos artifícios cibernéticos da teoria clássica aplicável por algoritmos digitais ordinários \cite{Morari1989}.
+
+\section{Fronteira de Pareto: IAE versus Variação Total (TV)}
+\label{sec:pareto_iae_tv}
+
+Investigou-se o compromisso ótimo de atuação em virtude das variações relativas sobre o eixo da restrição analítica das estratégias PID SIMC \cite{Skogestad2003}. Realizou-se de forma algorítmica exaustiva uma varredura (\textit{sweep}) do tempo de malha fechada almejado $\tau_c$ no intervalo $\tau_c \in [0{,}10;\; 2{,}00]\;\si{\minute}$.
+
+Em relação à fronteira de Pareto construída, atesta-se empiricamente o compromisso fundamental: valores reduzidos de $\tau_c$ induzem respostas agressivas, minimizando o resíduo integral (menor IAE) à custa de elevada movimentação do elemento final de controle (TV elevada). A curva característica exibe uma transição nítida em formato de ``L'', delimitando o ``joelho'' analítico (\textit{knee}) na faixa intervalar de $\tau_c \in [0{,}25;\; 0{,}40]\;\si{\minute}$. Abaixo deste limiar, observa-se expressivo acréscimo no desgaste do atuador com ganhos marginais desprezíveis de desempenho integral, caracterizando retornos decrescentes. A \autoref{tab:fronteira_pareto} congrega os valores numéricos simulados, e a \cref{fig:fronteira_pareto} ilustra a curva de compromisso correspondente.
+
+\begin{table}[htpb]
+    \centering
+    \caption{Métricas de desempenho avaliadas para diferentes valores do parâmetro de projeto SIMC ($\tau_c$) com propósito de construção analítica da fronteira de Pareto.}
+    \label{tab:fronteira_pareto}
+    \begin{tabular}{S[table-format=1.2]S[table-format=1.2]S[table-format=4.1]S[table-format=2.1]S[table-format=2.2]}
+        \toprule
+        {$\tau_c$ [\si{\minute}]} & {IAE [\si{\kelvin\cdot\minute}]} & {TV [\si{\liter\per\minute}]} & {$M_p$ [\%]} & {$t_s$ [\si{\minute}]} \\
+        \midrule
+        0.10 &  0.62 & 1420.5 &  8.4 &  1.50 \\
+        0.15 &  0.69 &  810.3 &  6.1 &  1.75 \\
+        0.20 &  0.78 &  504.6 &  4.3 &  1.90 \\
+        0.25 &  0.86 &  385.1 &  3.2 &  2.20 \\
+        0.30 &  0.94 &  310.2 &  2.7 &  2.50 \\
+        0.35 &  1.01 &  250.8 &  2.4 &  2.80 \\
+        0.40 &  1.09 &  210.5 &  2.1 &  3.10 \\
+        0.50 &  1.25 &  150.3 &  1.5 &  3.80 \\
+        0.75 &  1.68 &   95.4 &  0.5 &  5.50 \\
+        1.00 &  2.12 &   70.1 &  0.1 &  7.20 \\
+        1.50 &  3.05 &   45.8 &  0.0 & 10.50 \\
+        2.00 &  4.01 &   35.2 &  0.0 & 14.10 \\
+        \bottomrule
+    \end{tabular}
+    \fonte{Elaborada pelos autores (2026).}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.92\textwidth,
+    height=7.2cm,
+    xlabel={Erro Integral Absoluto (IAE) [\si{\kelvin\cdot\minute}]},
+    ylabel={Variação Total (TV) [\si{\liter\per\minute}]},
+    xmin=0.4, xmax=4.5,
+    ymin=0, ymax=1600,
+    grid=both,
+    grid style={line width=.1pt, draw=gray!25},
+    major grid style={line width=.2pt, draw=gray!40},
+    legend pos=north east,
+    legend cell align={left},
+    legend style={font=\footnotesize, fill=white, fill opacity=0.9, draw=gray!40},
+    tick label style={font=\footnotesize},
+    label style={font=\small}
+]
+    % Regiao sombreada do joelho otimo
+    \addplot[fill=ForestGreen!15, draw=none, domain=0.86:1.09] 
+        coordinates {(0.86, 0) (0.86, 1600) (1.09, 1600) (1.09, 0)} \closedcycle;
+
+    % Curva contínua da fronteira
+    \addplot[smooth, line width=1.4pt, color=NavyBlue, mark=*, mark size=2pt, mark options={fill=NavyBlue}]
+        coordinates {
+            (0.62, 1420.5)
+            (0.69, 810.3)
+            (0.78, 504.6)
+            (0.86, 385.1)
+            (0.94, 310.2)
+            (1.01, 250.8)
+            (1.09, 210.5)
+            (1.25, 150.3)
+            (1.68, 95.4)
+            (2.12, 70.1)
+            (3.05, 45.8)
+            (4.01, 35.2)
+        };
+    \addlegendentry{Fronteira de Pareto (SIMC)}
+
+    % Ponto de sintonia nominal tau_c = 0.40
+    \node[circle, fill=BrickRed, inner sep=2.5pt, pin=above right:{\footnotesize \textbf{SIMC Nominal} ($\tau_c = 0{,}40\,\text{min}$)}] 
+        at (axis cs:1.09, 210.5) {};
+
+    % Rotulo da regiao do joelho
+    \node[draw=ForestGreen!80, fill=white, rounded corners=2pt, font=\scriptsize, align=center] 
+        at (axis cs:2.6, 750) {Região do ``Joelho'' Ótimo\\$\tau_c \in [0{,}25;\; 0{,}40]\,\text{min}$};
+    \draw[->, line width=0.8pt, ForestGreen!80] (axis cs:2.1, 700) -- (axis cs:1.05, 300);
+
+\end{axis}
+\end{tikzpicture}
+\caption{Fronteira contínua de Pareto relacionando o erro integral absoluto (IAE) e a variação total do sinal de controle (TV), com destaque para a região do ``joelho'' de compromisso ótimo ($\tau_c \in [0{,}25;\; 0{,}40]\;\si{\minute}$).}
+\label{fig:fronteira_pareto}
+\fonte{Elaborada pelos autores (2026).}
+\end{figure}
+
+\section{Recomendações Práticas para Operação Industrial}
+\label{sec:recomendacoes_praticas}
+
+Como inferência dedutivamente estruturada de natureza prática sob o horizonte fabril do reator tubular isotérmico-acoplado \cite{Bequette2003,Shinskey1996}, recomenda-se mandatoriamente:
+\begin{enumerate}
+    \item Procedimentos rotineiros estimativos das variações globais e paramétricas $UA$ via filtros acoplados a malha (Filtro de Kalman local do balanço termodinâmico na jaqueta externa);
+    \item Definição estatística formal visando programação estruturada para manutenções estritas sempre que a razão analítica decair de modo inferior a tolerância imposta em $0.75$ (adiciona-se um coeficiente extra estocástico sobre a folga paramétrica limitante e não-linear no marco do colapso reacional equivalente ao delta fixado do limiar $\alpha = 0.60$);
+    \item Aplicação restrita baseada na alteração de escalas temporais dinâmicas por escalonamento preditivo do ganho (\textit{gain scheduling});
+    \item Instrumentação de redes previsoras (malhas integrativas de antecipação \textit{feedforward}) minimizadoras dos impactos oriundos das dinâmicas das correntes adutoras instáveis em fluxos transitórios.
+\end{enumerate}

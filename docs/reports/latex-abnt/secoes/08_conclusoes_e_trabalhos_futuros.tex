@@ -1,0 +1,49 @@
+\chapter{Conclusões e Trabalhos Futuros}
+\label{cap:conclusoes}
+
+\section{Síntese dos Resultados}
+\label{sec:sintese_resultados}
+
+O presente trabalho investigou de forma pormenorizada as fronteiras de controlabilidade, os efeitos de saturação no atuador e os compromissos de robustez inerentes à aplicação do controle PID clássico a um CSTR exotérmico altamente não linear, operando em regime de alta conversão ($X_A \approx 95\%$). As principais conclusões são sintetizadas a seguir.
+
+O modelo fenomenológico do CSTR encamisado, constituído por três equações diferenciais ordinárias acopladas (balanços de massa e energia do reator e da camisa), foi derivado a partir dos princípios fundamentais de conservação e validado para o ponto de operação instável com autovalor $\lambda_1 = +0{,}284\;\si{\minute^{-1}}$. A cinética de Arrhenius, com fator pré-exponencial $k_0 = \num{7.2e10}\;\si{\minute^{-1}}$ e razão $E/R = \SI{8750}{\kelvin}$, introduz a não-linearidade exponencial que domina o comportamento dinâmico do sistema.
+
+A análise de Van Heerden, combinada com as restrições físicas do atuador ($q_j \in [0, 300]\;\si{\liter\per\minute}$), revelou o limite termodinâmico de controlabilidade. A degradação do coeficiente global de transferência de calor por encrustamento (\textit{fouling}), parametrizada pelo fator $\alpha = UA_{\text{eff}}/UA_{\text{nom}}$, demonstrou que:
+\begin{itemize}
+    \item Para $\alpha \geq 0{,}70$, o controlador PID mantém a estabilidade do sistema, embora com desempenho degradado (IAE até $2{,}5\times$ o valor nominal).
+    \item Para $\alpha \leq 0{,}60$, a curva de geração de calor $Q_g$ supera a capacidade máxima de remoção $Q_{r,\max}$ mesmo com a válvula totalmente aberta. Nenhuma estratégia de controle por retroalimentação finita é capaz de estabilizar o reator neste regime, configurando uma limitação intrínseca da planta --- e não do controlador.
+\end{itemize}
+
+A avaliação comparativa das metodologias de sintonia conduziu a conclusões inequívocas:
+\begin{itemize}
+    \item \textbf{Ziegler-Nichols e Cohen-Coon}: ambos os métodos heurísticos produziram sintonias catastroficamente agressivas, com sobressinais superiores a $\SI{800}{\percent}$, $\text{IAE} > 100$ e saturação persistente do atuador. Tais métodos, concebidos para plantas estáveis e aproximadamente lineares, mostraram-se fundamentalmente inadequados para o CSTR instável em estudo.
+    \item \textbf{SIMC} (Skogestad, $\tau_c = \SI{0.40}{\minute}$): desempenho nominal excelente, com $\text{IAE} = 1{,}09$, sobressinal $M_p = \SI{2.1}{\percent}$ e ação de controle suave, sem episódios de saturação sustentada.
+    \item \textbf{ITAE Ótimo} (com restrição $M_s \leq 1{,}6$): obteve o melhor desempenho integral ($\text{IAE} = 0{,}89$) com margens de robustez garantidas ($M_s = 1{,}24$), operando essencialmente como controlador PI ($T_d = \SI{0.001}{\minute}$).
+\end{itemize}
+
+A construção da fronteira de Pareto entre IAE e Variação Total (TV), mediante varredura paramétrica de $\tau_c$ no arcabouço SIMC, confirmou a existência de um ``joelho'' na região $\tau_c \in [0{,}25;\; 0{,}40]\;\si{\minute}$. Abaixo deste limiar, reduções marginais no IAE impõem penalidades desproporcionais de desgaste mecânico na válvula de controle. A escolha $\tau_c = \SI{0.40}{\minute}$ situa-se precisamente nesta transição, representando o compromisso ótimo entre desempenho e longevidade do atuador.
+
+A implementação do mecanismo de \textit{anti-windup} por integração condicional (\textit{clamping}) revelou-se indispensável para a operação segura do sistema, impedindo o acúmulo espúrio do integrador durante episódios de saturação e prevenindo excursões térmicas potencialmente destrutivas.
+
+\section{Contribuições Originais}
+\label{sec:contribuicoes_originais}
+
+As contribuições originais deste trabalho podem ser sumarizadas em três vertentes:
+\begin{enumerate}
+    \item \textbf{Demonstração sistemática da conexão entre limites termodinâmicos de Van Heerden e restrições de atuador}: quantificou-se explicitamente como a degradação de $UA$ por \textit{fouling} desloca a fronteira de controlabilidade, estabelecendo o limiar crítico $\alpha = 0{,}60$ como ponto de perda irreversível de estabilizabilidade.
+    \item \textbf{Análise quantitativa de falha dos métodos heurísticos clássicos}: documentou-se, com rigor numérico, a inadequação de Ziegler-Nichols e Cohen-Coon para plantas instáveis e fortemente não lineares com saturação de atuador, resultado frequentemente omitido em textos didáticos.
+    \item \textbf{Construção da fronteira de Pareto IAE \emph{versus} TV}: estabeleceu-se a relação funcional contínua entre desempenho de rastreamento e desgaste mecânico do atuador, identificando a região de compromisso ótimo no espaço de projeto do controlador.
+\end{enumerate}
+
+\section{Trabalhos Futuros}
+\label{sec:trabalhos_futuros}
+
+Com base nos resultados obtidos, delineiam-se as seguintes direções para trabalhos futuros:
+\begin{itemize}
+    \item \textbf{Controle Preditivo Não Linear (NMPC)}: formulação de um controlador MPC com tratamento explícito das restrições de estado e entrada, possibilitando a otimização em tempo real do \textit{trade-off} desempenho-robustez \cite{Rawlings2017}.
+    \item \textbf{Controladores baseados em redes neurais}: investigação de arquiteturas NN-PID e LSTM para controle adaptativo do CSTR, conforme previsto na continuidade do projeto PROIC.
+    \item \textbf{Sistema Multi-Agentes para automação do \textit{pipeline} de sintonia}: implementação de agentes autônomos via LangGraph para orquestrar automaticamente as etapas de identificação, sintonia, simulação e avaliação.
+    \item \textbf{Estimação \textit{online} de $UA$}: projeto de um Filtro de Kalman Estendido (EKF) para monitoramento contínuo do coeficiente de transferência de calor, viabilizando estratégias de manutenção preditiva e \textit{gain scheduling} adaptativo.
+    \item \textbf{Validação experimental}: construção e instrumentação de um CSTR de bancada para confrontação dos resultados teóricos com dados experimentais.
+    \item \textbf{Análise estocástica de incertezas paramétricas}: simulações de Monte Carlo para quantificação da propagação de incertezas nos parâmetros do modelo sobre os índices de desempenho e as margens de estabilidade \cite{Khalil2002}.
+\end{itemize}

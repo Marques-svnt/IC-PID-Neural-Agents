@@ -1,0 +1,154 @@
+% -----------------------------------------------------------------------------
+% Capítulo 4: Arquitetura de Controle PID com Anti-Windup
+% -----------------------------------------------------------------------------
+\chapter{Arquitetura de Controle PID com Anti-Windup}
+\label{cap:arquitetura_pid}
+
+A implementação robusta de controladores industriais requer não apenas a parametrização apropriada de seus ganhos estáticos, mas a estruturação metódica de salvaguardas operacionais em tempo de execução. Este capítulo apresenta a formulação do algoritmo Proporcional-Integral-Derivativo (PID) no domínio discreto, as estratégias de mitigação do fenômeno de \textit{windup} sob saturação do atuador e a arquitetura geral da malha de controle aplicada ao CSTR.
+
+\section{Estrutura PID Paralela em Tempo Discreto}
+\label{sec:pid_discreto}
+
+Para a implementação computacional em sistemas microprocessados, a formulação analítica do PID deve ser convertida para sua versão de tempo discreto. Adotou-se, neste projeto, a representação paralela do PID (ou forma ideal acadêmica) com termo derivativo filtrado na medida da variável de processo, visando evitar surtos de sinal originados de variações abruptas do \textit{setpoint} (fenômeno denominado \textit{derivative kick}) \cite{Seborg2016, Astrom2006}.
+
+A lei de controle discreta no instante de amostragem $k$ obedece à formulação:
+\begin{equation}
+    u(k) = u_{ss} + K_p e(k) + K_i \sum_{j=0}^{k} e(j)\Delta t + K_d D(k)
+\end{equation}
+onde $u_{ss}$ consiste no sinal de atuação estacionário (o \textit{bias}), $K_p$, $K_i$ e $K_d$ são os ganhos proporcional, integral e derivativo, respectivamente. A variação de integração discretizada por regra retangular é operada mediante passos $\Delta t$. O erro de rastreamento no instante $k$, atuando reversamente face à característica de resfriamento, é estabelecido como $e(k) = T_{sp} - T(k)$.
+
+O termo derivativo computado na realimentação, implementado juntamente com filtro passa-baixa de primeira ordem com parâmetro N (usualmente variando entre 8 e 20, sendo N=10 selecionado empíricamente), é regido recursivamente por:
+\begin{equation}
+    D(k) = \frac{N \cdot K_d}{N \cdot \Delta t + K_d} \left[-T(k) + T(k-1)\right] + \frac{K_d}{N \cdot \Delta t + K_d} D(k-1)
+\end{equation}
+
+\section{Saturação de Amplitude e Slew-Rate}
+\label{sec:saturacao_slew_rate}
+
+Em virtude das limitações eletromecânicas e hidráulicas de válvulas de controle atuantes na planta industrial do CSTR, dois comportamentos não-lineares foram integrados intrinsecamente na modelagem de atuadores:
+\begin{itemize}
+    \item \textbf{Saturação de Amplitude}: delimita a faixa operacional rígida admissível para a ação corretiva computada $u_{\text{raw}}$, conforme imposto previamente pela análise de exequibilidade física. O sinal consolidado após saturação segue a condição:
+    \begin{equation}
+        u_{\text{sat}}(k) = \max\left(u_{\min}, \min(u_{\max}, u_{\text{raw}}(k))\right)
+    \end{equation}
+    em que $u_{\min} = \SI{0.0}{\liter\per\minute}$ e $u_{\max} = \SI{300.0}{\liter\per\minute}$.
+    
+    \item \textbf{Limitação de Taxa de Giro (Slew-Rate)}: restringe a velocidade da variação mecânica do atuador, prevenindo que variações instantâneas degradem o sistema de atuação sob desgaste abrasivo e transientes de alta frequência. A limitação superior definida estatui que $|\Delta u/\Delta t| \le S_{\max} = \SI{80.0}{\liter\per\minute\squared}$. Em tempo discreto com passo $\Delta t = \SI{0.02}{\minute}$, a restrição absoluta sobre a atualização da lei de controle torna-se:
+    \begin{equation}
+        |u(k) - u(k-1)| \le S_{\max} \cdot \Delta t = \SI{1.6}{\liter\per\minute}
+    \end{equation}
+\end{itemize}
+
+\section{Anti-Windup por Integração Condicional (Clamping)}
+\label{sec:anti_windup}
+
+Quando $u_{\text{raw}}$ suplanta a região $u_{\text{sat}}$ delineada e a ação persiste no mesmo sentido, a integração desregulada dos erros resultaria em acúmulo artificial que exigiria extensos períodos para reversão, originando substanciais sobre-sinais de sintonia (\textit{overshoot}). A literatura registra o recurso de \textit{anti-windup} como mecanismo canônico de reparo desta perturbação sistêmica.
+
+A técnica empregada neste trabalho corresponde ao rastreamento e supressão de acumulação denominado Integração Condicional (\textit{Clamping}) \cite{Visioli2006}. Este algoritmo impede o processamento do termo integral no passo condicionalmente sob as hipóteses de que o integrador esteja efetivamente causando excursões além da saturação máxima.
+Logicamente, o mecanismo é ativado caso a planta apresente saída saturada, concomitantemente exigindo que o sentido evolutivo do erro atual alimente adicionalmente tal saturação. Como variante alternativa, a bibliografia cita amiúde a estratégia de \textit{back-calculation} \cite{Astrom2006}, contudo, por propósitos computacionais simplificados e robustez prática, elegeu-se o \textit{clamping}.
+
+A lógica processa-se do seguinte modo:
+\begin{align}
+\text{se } \left(u_{\text{sat}} \neq u_{\text{raw}}\right) \text{ e } \text{sinal}(e(k)) &= \text{sinal}(u_{\text{raw}} - u_{ss}) \text{, então} \\ \nonumber
+    I(k) &= I(k-1) \\
+\text{caso contrário, } \nonumber \\
+    I(k) &= I(k-1) + e(k) \cdot \Delta t
+\end{align}
+
+\section{Implementação Computacional}
+\label{sec:implementacao_pid}
+
+A implementação pragmática deste modelo algorítmico, incluindo o desvio sistemático do acúmulo de saturação (\textit{anti-windup}), foi transcrita na linguagem computacional \textit{Python}, conforme atestado no \autoref{codigo:pid}. O excerto extraído compõe parte essencial do bloco dinâmico que integra a lógica central de processamento.
+
+\begin{lstlisting}[language=Python, caption={Implementação computacional do controlador PID digital com recurso de Anti-Windup (\textit{clamping}) condicional.}, label={codigo:pid}]
+class DigitalPID:
+    def __init__(
+        self,
+        gains: PIDGains,
+        dt: float,
+        method: DiscretizationMethod = DiscretizationMethod.TUSTIN,
+    ) -> None:
+        self.gains = gains
+        self.dt = dt
+        self.method = method
+        self._integral: float = 0.0
+        self._prev_error: float = 0.0
+        self._prev_output: float = 0.0
+
+    def compute(self, setpoint: float, measurement: float) -> float:
+        error = setpoint - measurement
+        g = self.gains
+        # Anti-windup: only integrate if output was not saturated
+        saturated = (self._prev_output >= g.u_max or self._prev_output <= g.u_min)
+        if not saturated:
+            self._integral += error * self.dt
+        derivative = (error - self._prev_error) / self.dt if self.dt > 0 else 0.0
+        output_raw = g.kp * error + g.ki * self._integral + g.kd * derivative
+        output = float(max(g.u_min, min(g.u_max, output_raw)))
+        self._prev_error = error
+        self._prev_output = output
+        return output
+\end{lstlisting}
+\vspace{2pt}\par\noindent{\footnotesize\textbf{Fonte:} Elaborada pelos autores (2026).}
+
+\section{Diagrama de Blocos do Sistema em Malha Fechada}
+\label{sec:diagrama_blocos}
+
+A estrutura abrangente arquitetada neste trabalho forma um contorno cibernético clássico em malha fechada \cite{Marlin2000}. A \cref{fig:diagrama_blocos} ilustra a arquitetura global implementada, evidenciando as não-linearidades de atuação e o laço condicional de \textit{anti-windup}.
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[
+    auto,
+    node distance=1.5cm and 1.2cm,
+    >=Latex,
+    block/.style={draw, fill=NavyBlue!8, rectangle, minimum height=1.0cm, minimum width=1.6cm, align=center, font=\small, rounded corners=2pt, line width=0.8pt},
+    limiter/.style={draw, fill=BurntOrange!10, rectangle, minimum height=1.0cm, minimum width=1.4cm, align=center, font=\footnotesize, rounded corners=2pt, line width=0.8pt},
+    plant/.style={draw, fill=ForestGreen!10, rectangle, minimum height=1.2cm, minimum width=2.2cm, align=center, font=\small, rounded corners=2pt, line width=1.0pt},
+    sum/.style={draw, circle, inner sep=0pt, minimum size=6mm, line width=0.8pt},
+    coord/.style={coordinate}
+]
+    % Nós principais (linha de controle superior)
+    \node[coord] (input) {};
+    \node[sum, right=0.8cm of input] (sum1) {};
+    \node[block, right=0.9cm of sum1] (pid) {PID Digital\\(Paralelo)};
+    \node[limiter, right=0.9cm of pid] (sat) {Saturação\\$[u_{\min}, u_{\max}]$};
+    \node[limiter, right=0.8cm of sat] (slew) {Taxa de Giro\\$|\Delta u/\Delta t| \le S_{\max}$};
+    \node[sum, right=0.8cm of slew] (sum2) {};
+    \node[coord, above=0.9cm of sum2] (dist) {};
+    \node[plant, right=0.8cm of sum2] (cstr) {Reator CSTR\\+ Camisa};
+    \node[coord, right=1.2cm of cstr] (output) {};
+
+    % Linha de realimentação (inferior)
+    \node[block, below=1.2cm of $(pid)!0.5!(cstr)$] (sensor) {Filtro Derivativo ($N=10$) / Amostragem $\Delta t$};
+
+    % Linhas e conexões
+    \draw[->, line width=0.8pt] (input) -- node[above, font=\small] {$T_{\text{sp}}(k)$} node[pos=0.85, above, font=\footnotesize] {$+$} (sum1);
+    \draw[->, line width=0.8pt] (sum1) -- node[above, font=\small] {$e(k)$} (pid);
+    \draw[->, line width=0.8pt] (pid) -- node[above, font=\footnotesize] {$u_{\text{raw}}$} (sat);
+    \draw[->, line width=0.8pt] (sat) -- node[above, font=\footnotesize] {$u_{\text{sat}}$} (slew);
+    \draw[->, line width=0.8pt] (slew) -- node[above, font=\small] {$q_j(k)$} node[pos=0.85, above, font=\footnotesize] {$+$} (sum2);
+    \draw[->, line width=0.8pt] (dist) -- node[right, font=\footnotesize] {$d(t) = \Delta T_f$} node[pos=0.85, right, font=\footnotesize] {$+$} (sum2);
+    \draw[->, line width=0.8pt] (sum2) -- (cstr);
+    \draw[->, line width=0.8pt] (cstr) -- node[above, font=\small] {$T(t)$} (output);
+
+    % Realimentacao
+    \draw[->, line width=0.8pt] ($(cstr.east)!0.5!(output)$) |- (sensor.east);
+    \draw[->, line width=0.8pt] (sensor.west) -| node[pos=0.92, left, font=\footnotesize] {$-$} (sum1.south);
+
+    % Laco anti-windup clamping (realimentacao de estado saturado para PID)
+    \draw[->, line width=0.7pt, dashed, color=BrickRed] (sat.south) -- ++(0,-0.4) -| node[pos=0.25, below, font=\scriptsize, color=BrickRed] {Sinal de Clamping (Congela Integrador)} (pid.south);
+
+\end{tikzpicture}%
+}
+\caption{Diagrama de blocos em malha fechada do controle de temperatura do CSTR, com blocos não lineares de saturação de amplitude, limitador de taxa de variação (\textit{slew-rate}) e realimentação condicional de \textit{anti-windup}.}
+\label{fig:diagrama_blocos}
+\fonte{Elaborada pelos autores (2026).}
+\end{figure}
+
+No arranjo elementar, um referencial almejado (temperatura de referência $T_{\text{sp}}$) é submetido ao nó somatório $\Sigma$, onde é confrontado com o sinal de temperatura medida $T(k)$, constituindo o erro de rastreamento $e(k)$. 
+
+Posteriormente, o sinal adentra no algoritmo discreto PID encarregado de processar as ações proporcional, integral e derivativa filtrada, resultando no comando não delimitado $u_{\text{raw}}$. Esse valor é processado pelo bloco de saturação de amplitude, que restringe o comando ao intervalo físico $[0, 300]\;\si{\liter\per\minute}$, gerando adicionalmente o sinal lógico de \textit{clamping} que inibe a integração caso haja saturação no mesmo sentido do erro. Em seguida, o limitador de \textit{slew-rate} assegura que a variação temporal não exceda $\SI{80.0}{\liter\per\minute\squared}$.
+
+O esforço real e fisicamente tolerado $q_j(k)$ atua sobre a camisa de resfriamento do reator CSTR, interagindo simultaneamente com perturbações exógenas $d(t)$ (tais como flutuações na temperatura de alimentação $T_f$). A temperatura resultante $T(t)$ é realimentada com filtragem derivativa passa-baixa ($N=10$), fechando o laço cibernético.

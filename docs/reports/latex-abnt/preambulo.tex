@@ -1,0 +1,199 @@
+% =============================================================================
+% preambulo.tex - Configuracoes Tipograficas e Pacotes (Conforme ABNT NBR 14724)
+% =============================================================================
+
+\usepackage{cmap}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+
+% Margens estritas da ABNT NBR 14724 (formato anverso / digital)
+% Superior: 3 cm (cabecalho a 2 cm com headsep=10mm)
+% Esquerda: 3 cm
+% Inferior: 2 cm
+% Direita:  2 cm (numero a 2 cm da borda direita)
+\usepackage[
+    a4paper,
+    top=30mm,
+    bottom=20mm,
+    left=30mm,
+    right=20mm,
+    headheight=15pt,
+    headsep=10mm,
+    footskip=10mm
+]{geometry}
+
+% Tipografia padronizada Times New Roman (NBR 14724 item 5.1)
+\usepackage{newtxtext}
+\usepackage{newtxmath}
+\usepackage[scaled=0.88]{inconsolata}
+
+\usepackage{lastpage}
+\usepackage{indentfirst}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{makecell}
+
+% Matematica avancada
+\usepackage{mathtools}
+\usepackage{bm}
+
+% Unidades do SI (configuradas para o padrao brasileiro / ABNT)
+\usepackage{siunitx}
+\sisetup{
+    output-decimal-marker={,},
+    group-separator={.},
+    inter-unit-product=\ensuremath{{\cdot}}
+}
+\DeclareSIUnit\calorie{cal}
+\DeclareSIUnit\molar{mol}
+\DeclareSIUnit\litre{L}
+
+% Graficos vetoriais de alta precisao com TikZ e PGFPlots
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,calc,fit,patterns}
+
+% Cores para codigos e diagramas
+\usepackage[dvipsnames]{xcolor}
+
+% Formatacao profissional de codigo-fonte (listings)
+\usepackage{listings}
+\renewcommand{\lstlistingname}{Código}
+\renewcommand{\lstlistlistingname}{Lista de Códigos}
+
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    basicstyle=\ttfamily\footnotesize,
+    columns=flexible,
+    keepspaces=true,
+    keywordstyle=\color{NavyBlue}\bfseries,
+    commentstyle=\color{ForestGreen}\itshape,
+    stringstyle=\color{BrickRed},
+    numberstyle=\tiny\color{gray},
+    numbers=left,
+    numbersep=8pt,
+    frame=single,
+    framerule=0.5pt,
+    rulecolor=\color{gray!30},
+    backgroundcolor=\color{gray!4},
+    breaklines=true,
+    breakatwhitespace=true,
+    showstringspaces=false,
+    captionpos=b,
+    tabsize=4,
+    xleftmargin=12pt,
+    framexleftmargin=12pt
+}
+\lstset{style=pythonstyle}
+
+% Citacoes no padrao ABNT (carrega hyperref internamente)
+\usepackage[alf]{abntex2cite}
+
+% Configuracao de links e metadados no PDF
+\makeatletter
+\hypersetup{
+    pdftitle={\@title},
+    pdfauthor={Gabriel Marques de Andrade; Elilton Rodrigues Edwards},
+    pdfsubject={Relatório Técnico-Científico PROIC/FAPESB/CNPq 34/2026},
+    pdfcreator={LaTeX with abnTeX2},
+    colorlinks=true,
+    linkcolor=NavyBlue,
+    citecolor=NavyBlue,
+    urlcolor=NavyBlue
+}
+\makeatother
+
+% Cleveref para referencias cruzadas em portugues
+\usepackage[nameinlink,brazilian]{cleveref}
+\crefname{equation}{Eq.}{Eqs.}
+\crefname{figure}{Figura}{Figuras}
+\crefname{table}{Tabela}{Tabelas}
+\crefname{chapter}{Capítulo}{Capítulos}
+\crefname{section}{Seção}{Seções}
+\crefname{subsection}{Subseção}{Subseções}
+\crefname{lstlisting}{Código}{Códigos}
+
+% Padronizacao tipografica dos titulos de capitulos e secoes (NBR 6024 e NBR 14724)
+\renewcommand{\ABNTEXchapterfont}{\normalfont\bfseries}
+\renewcommand{\ABNTEXchapterfontsize}{\Large}
+\renewcommand{\ABNTEXsectionfont}{\normalfont\bfseries}
+\renewcommand{\ABNTEXsectionfontsize}{\large}
+\renewcommand{\ABNTEXsubsectionfont}{\normalfont\bfseries}
+\renewcommand{\ABNTEXsubsectionfontsize}{\normalsize}
+\renewcommand{\ABNTEXsubsubsectionfont}{\normalfont\itshape}
+\renewcommand{\ABNTEXsubsubsectionfontsize}{\normalsize}
+\renewcommand{\ABNTEXsubsubsubsectionfont}{\normalfont}
+\renewcommand{\ABNTEXsubsubsubsectionfontsize}{\normalsize}
+
+% Parametrizacao de paragrafo e espacamento ABNT NBR 14724
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0pt}
+
+% Formatacao de legendas e fontes (ABNT NBR 14724 itens 5.8 e 5.9: fonte menor 10pt)
+\captiondelim{ -- }
+\captionnamefont{\footnotesize\bfseries}
+\captiontitlefont{\footnotesize}
+
+% Estilo de pagina textual ABNT: numero no canto superior direito, sem cabecalho
+\makepagestyle{abnttextual}
+\makeevenhead{abnttextual}{}{}{\footnotesize\thepage}
+\makeoddhead{abnttextual}{}{}{\footnotesize\thepage}
+\makeevenfoot{abnttextual}{}{}{}
+\makeoddfoot{abnttextual}{}{}{}
+
+% Redefinicao da Capa no padrao institucional UESC / ABNT NBR 14724
+\renewcommand{\imprimircapa}{%
+  \begin{capa}%
+    \center
+    {\ABNTEXchapterfont\bfseries\normalsize\MakeTextUppercase{\imprimirinstituicao}\par}
+    \vspace*{3.0cm}
+    {\ABNTEXchapterfont\bfseries\normalsize\MakeTextUppercase{\imprimirautor}\par}
+    \vspace*{\fill}
+    {\ABNTEXchapterfont\bfseries\large\MakeTextUppercase{\imprimirtitulo}\par}
+    \vspace*{\fill}
+    {\ABNTEXchapterfont\bfseries\normalsize\MakeTextUppercase{\imprimirlocal}\par}
+    {\ABNTEXchapterfont\bfseries\normalsize\imprimirdata\par}
+    \vspace*{1cm}
+  \end{capa}
+}
+
+% Redefinicao da Folha de Rosto no padrao ABNT NBR 14724
+\renewcommand{\imprimirfolhaderosto}{%
+  \clearpage
+  \begin{center}
+    {\ABNTEXchapterfont\bfseries\normalsize\MakeTextUppercase{\imprimirautor}\par}
+    \vspace*{\fill}
+    {\ABNTEXchapterfont\bfseries\large\MakeTextUppercase{\imprimirtitulo}\par}
+    \vspace*{\fill}
+    \hspace{.45\textwidth}
+    \begin{minipage}{.50\textwidth}
+      \SingleSpacing
+      \footnotesize
+      \imprimirpreambulo
+      \par\vspace{1.5em}
+      {\textbf{Orientador:} \imprimirorientador\par}
+    \end{minipage}%
+    \vspace*{\fill}
+    {\ABNTEXchapterfont\bfseries\normalsize\MakeTextUppercase{\imprimirlocal}\par}
+    {\ABNTEXchapterfont\bfseries\normalsize\imprimirdata\par}
+    \vspace*{1cm}
+  \end{center}
+  \clearpage
+}
+
+% Comandos matematicos personalizados
+\newcommand{\ddt}{\frac{\mathrm{d}}{\mathrm{d}t}}
+\newcommand{\deriv}[2]{\frac{\mathrm{d}#1}{\mathrm{d}#2}}
+\newcommand{\CA}{C_A}
+\newcommand{\Tss}{T_{\mathrm{ss}}}
+\newcommand{\qj}{q_j}
+\newcommand{\Tj}{T_j}
+\newcommand{\Tjf}{T_{jf}}
+\newcommand{\Caf}{C_{Af}}
+\newcommand{\rA}{r_A}
+\newcommand{\UAnom}{UA_{\mathrm{nom}}}
+\newcommand{\UAeff}{UA_{\mathrm{eff}}}

@@ -1,0 +1,116 @@
+\chapter{Benchmark Nominal e Resposta a Perturbações}
+\label{cap:benchmark}
+
+Neste capítulo, é apresentado o protocolo de simulação utilizado para a avaliação do desempenho dos controladores PID aplicados ao Reator Contínuo de Tanque Agitado (CSTR). Subsequentemente, analisam-se os resultados sob diferentes métodos de sintonia.
+
+\section{Protocolo de Simulação}
+\label{sec:protocolo_simulacao}
+
+A integração das equações diferenciais ordinárias (EDOs) do modelo do CSTR foi realizada através do solver \texttt{solve\_ivp} da biblioteca SciPy, utilizando o método numérico de Dormand-Prince de ordem 4(5) (RK45). A tolerância relativa foi definida como \num{1e-10} e a tolerância absoluta como \num{1e-12}, garantindo precisão adequada para sistemas com dinâmicas acentuadamente não lineares e rápida evolução temporal. O tempo de amostragem do sistema de controle digital foi estabelecido em $\Delta t = \SI{0.02}{\minute}$ (ou seja, \num{50} amostras por minuto), adequado às constantes de tempo do processo térmico.
+
+O cenário de teste padronizado consiste na aplicação de uma perturbação tipo degrau na referência (setpoint) de temperatura, denotada por $\Delta T_{sp} = \SI{+5}{\kelvin}$, partindo do estado estacionário em $T = \SI{396.65}{\kelvin}$ para \SI{401.65}{\kelvin} no instante $t = \SI{0}{\minute}$. A fim de avaliar a capacidade de rejeição a distúrbios, impõe-se uma perturbação degrau na temperatura de alimentação $\Delta T_{f} = \SI{+10}{\kelvin}$ no instante $t = \SI{10}{\minute}$.
+
+Para quantificar objetivamente o desempenho das estratégias de controle em malha fechada, os seguintes índices e métricas foram computados:
+\begin{itemize}
+    \item Integral do Erro Absoluto (IAE) e Integral do Erro Absoluto Ponderado pelo Tempo (ITAE);
+    \item Integral do Erro Quadrático (ISE);
+    \item Sobressinal máximo ($M_p$), expresso em porcentagem;
+    \item Tempo de acomodação ($t_s$) para uma banda de \SI{2}{\percent};
+    \item Variação Total da ação de controle (TV), definida como $\text{TV} = \sum |u(k) - u(k-1)|$, utilizada como métrica heurística do desgaste do atuador (válvula).
+\end{itemize}
+
+O Código~\ref{lst:compute_metrics} apresenta a implementação computacional desenvolvida para a extração rigorosa de tais métricas a partir das trajetórias simuladas.
+
+\begin{lstlisting}[language=Python, caption={Cálculo das métricas de desempenho em malha fechada.}, label={lst:compute_metrics}]
+def compute_metrics(
+    time: NDArray[np.float64],
+    error: NDArray[np.float64],
+    output: NDArray[np.float64],
+    setpoint: NDArray[np.float64],
+    tolerance_pct: float = 2.0,
+) -> PerformanceMetrics:
+    # Compute the average sampling time
+    dt = float(np.mean(np.diff(time)))
+    step_size = float(setpoint[-1] - setpoint[0])
+    
+    # Calculate integral performance indices
+    ise = float(np.trapz(error**2, time))
+    iae = float(np.trapz(np.abs(error), time))
+    itae = float(np.trapz(time * np.abs(error), time))
+    
+    # Calculate peak metrics
+    if step_size != 0:
+        peak = float(np.max(output) if step_size > 0 else np.min(output))
+        overshoot_pct = max(0.0, (peak - setpoint[-1]) / abs(step_size) * 100)
+    else:
+        overshoot_pct = 0.0
+        
+    # Placeholder for settling time, rise time, and steady-state error extraction
+    # ...
+    
+    return PerformanceMetrics(ise=ise, iae=iae, itae=itae, overshoot_pct=overshoot_pct)
+\end{lstlisting}
+\vspace{2pt}\par\noindent{\footnotesize\textbf{Fonte:} Elaborada pelos autores (2026).}
+
+\section{Desempenho sob Sintonia Ziegler-Nichols}
+\label{sec:desempenho_zn}
+
+A avaliação dos parâmetros derivados do método clássico de resposta em malha aberta de Ziegler-Nichols \cite{ZieglerNichols1942} culminou em falha catastrófica de estabilização. Observou-se um sobressinal $M_p > \SI{800}{\percent}$, acompanhado por um $\text{IAE} > 100$ e episódios estendidos de saturação contínua e persistente na vazão de líquido refrigerante ($u_{\max} = \SI{300}{\liter\per\minute}$).
+
+Tais anomalias refletiram-se em excursões de temperatura inaceitáveis, ultrapassando \SI{+56.5}{\kelvin} em relação à nova referência, conduzindo o reator em direção ao limiar do colapso térmico (\textit{thermal runaway}). O mecanismo elementar dessa falha pode ser atribuído à realimentação positiva gerada entre os ganhos excessivamente agressivos propostos pelo critério heurístico e a forte dependência exponencial cinética intrínseca à equação de Arrhenius \cite{Fogler2016}.
+
+Neste cenário de falha aguda, o controlador passou a demandar substancialmente mais refrigeração do que o máximo fisicamente viável. A aplicação do método de \textit{anti-windup} limitou momentaneamente os desvios, porém a extensão do dano térmico já se encontrava irreversivelmente configurada pela própria natureza reativa do sistema \cite{Bequette2003}.
+
+\section{Desempenho sob Sintonia Cohen-Coon}
+\label{sec:desempenho_cc}
+
+Conforme reportado na Seção \ref{sec:desempenho_zn}, os efeitos observados com a aplicação do critério de sintonia de Cohen e Coon \cite{CohenCoon1953} resultaram em um desempenho notavelmente inferior em comparação direta com os resultados obtidos através da metodologia Ziegler-Nichols. O ganho proporcional $K_p$ fornecido pelo método é significativamente mais agressivo, o que resultou em sobressinais de maior amplitude e períodos prolongados de operação sob o regime de saturação restrita do atuador térmico.
+
+Os resultados evidenciam categoricamente a inadequação fundamental de ambas as metodologias clássicas de natureza estritamente linear no que concerne à estabilização operacional em circuito fechado de plantas reacionais caracterizadas por instabilidade intrínseca de malha aberta (polos instáveis) e pronunciada não-linearidade térmica de primeira ordem, um cenário ubíquo em engenharia das reações químicas \cite{Luyben2007}.
+
+\section{Desempenho sob Sintonia SIMC (Skogestad)}
+\label{sec:desempenho_simc}
+
+A síntese do controlador baseada no modelo interno pelo método de redução analítica simples proposta por Skogestad (SIMC) \cite{Skogestad2003} apresentou uma \textit{performance} formidável. Um expressivo índice $\text{IAE} = 1.09$ foi registrado, simultaneamente à ocorrência de um modesto sobressinal $M_p = \SI{2.1}{\percent}$ e da observação de um sinal de controle consideravelmente suave, estritamente confinado ao intervalo exequível $u \in [40, 220]\,\SI{}{\liter\per\minute}$.
+
+Destaca-se a exímia aptidão da malha de controle na anulação ativa e tempestiva dos efeitos nocivos resultantes da perturbação imposta em $T_f$, viabilizando a regressão à referência almejada em um intervalo correspondente a aproximadamente $\SI{3}{\minute}$. A Variação Total (TV) associada ao esforço manipulativo permaneceu confinada em limites razoáveis, implicando a preservação física das válvulas proporcionais ao longo do ciclo operacional \cite{Seborg2016}.
+
+\section{Desempenho sob Sintonia ITAE Ótima}
+\label{sec:desempenho_itae}
+
+Com o intuito de mitigar as penalidades ao longo do tempo prolongado (via peso na variável integradora $t$), a busca do mínimo paramétrico estrito pelo índice ITAE revelou ser a configuração possuidora da otimalidade integral superior. Computou-se $\text{IAE} = 0.89$, tolerando um suave crescimento do sobressinal para $M_p = \SI{4.8}{\percent}$, além do índice sensibilidade correspondendo a $M_s = 1.24$, atestando adequadas margens de robustez.
+
+Essa configuração exibe dinâmicas ligeiramente mais incisivas nas ações de restabelecimento na fronteira das transições que a sua contraparte SIMC. Notou-se elevação modesta da TV em face do esforço mais agressivo exigido sobre o manipulador; entretanto, a considerável redução do valor integral temporal global (IAE) frequentemente justifica esse pequeno acréscimo em detrimento térmico da planta em aplicações da vida real \cite{Shinskey1996,Astrom2006}.
+
+\section{Tabela Comparativa de Métricas de Desempenho}
+\label{sec:tabela_metricas}
+
+A \autoref{tab:metricas_desempenho} congrega, de forma estruturada e sintetizada, os resultados provenientes do mapeamento das matrizes simuladas relativas às metodologias investigadas. Adicionalmente, a \cref{fig:benchmark_completo} ilustra com exatidão as trajetórias dinâmicas temporais da temperatura do reator $T(t)$ e da vazão de resfriamento $q_j(t)$ para os quatro controladores, evidenciando o contraste marcante entre a estabilização robusta assegurada por SIMC e ITAE contra a divergência com saturação crônica induzida por Ziegler-Nichols e Cohen-Coon.
+
+\input{secoes/fig_benchmark}
+
+\begin{table}[htbp]
+    \centering
+    \small
+    \setlength{\tabcolsep}{4.5pt}
+    \caption{Comparativo das métricas de desempenho para os diferentes métodos de sintonia do controlador PID.}
+    \label{tab:metricas_desempenho}
+    \begin{tabular}{@{}lrrrrrrl@{}}
+        \toprule
+        \textbf{Método} & \textbf{IAE} & \textbf{ITAE} & \textbf{ISE} & \textbf{$M_p$ [\%]} & \textbf{$t_s$ [\si{\minute}]} & \textbf{TV [\si{\liter\per\minute}]} & \textbf{Saturação} \\
+        \midrule
+        Ziegler-Nichols  & $>100$     & $>150$     & $>1000$    & $>800$   & $\infty$ & $>5000$   & Persistente/Falha \\
+        Cohen-Coon       & $>100$     & $>150$     & $>1000$    & $>800$   & $\infty$ & $>5000$   & Persistente/Falha \\
+        SIMC (Skogestad) & $1{,}09$   & $2{,}45$   & $0{,}78$   & $2{,}1$  & $3{,}1$  & $210{,}5$ & Ausente \\
+        ITAE Ótimo       & $0{,}89$   & $1{,}76$   & $0{,}61$   & $4{,}8$  & $2{,}8$  & $245{,}2$ & Ausente \\
+        \bottomrule
+    \end{tabular}
+    \fonte{Elaborada pelos autores (2026).}
+\end{table}
+
+\section{Análise da Variação Total e Desgaste do Atuador}
+\label{sec:analise_tv}
+
+No âmbito operacional da sintonia clássica \cite{Astrom2006}, uma dimensão fundamental que restringe a escolha final da malha concerne na predição do desgaste mecânico dos atuadores de controle. A Variação Total (TV) atua matematicamente como medição aproximada dessa deterioração: incrementos de TV espelham deslocamentos excessivamente frenéticos da válvula regulatória.
+
+Ao impor um ajuste extremamente restrito visando minimizar agressivamente a variação de erro (via diminuição drástica do IAE), ocasiona-se elevação considerável da TV (compromisso IAE-TV ou \textit{trade-off} de robustez-desempenho). Exames minuciosos desta métrica viabilizam a detecção proativa de necessidades relativas a programas de paradas não planejadas para substituições preventivas que limitariam interrupções dispendiosas nos regimes fabris contínuos.

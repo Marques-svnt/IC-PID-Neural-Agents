@@ -1,0 +1,65 @@
+\changetocdepth {4}
+\babel@toc {brazil}{}\relax 
+\babel@toc {brazilian}{}\relax 
+\setlength {\cftchapterindent }{\cftlastnumwidth } \setlength {\cftchapternumwidth }{2em}
+\setlength {\cftchapterindent }{\cftlastnumwidth } \setlength {\cftchapternumwidth }{2em}
+\setlength {\cftchapterindent }{\cftlastnumwidth } \setlength {\cftchapternumwidth }{2em}
+\setlength {\cftchapterindent }{\cftlastnumwidth } \setlength {\cftchapternumwidth }{2em}
+\setlength {\cftchapterindent }{0em} \setlength {\cftchapternumwidth }{\cftlastnumwidth }
+\contentsline {chapter}{\chapternumberline {1}\MakeTextUppercase []{Introdução e Contextualização}}{9}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Objetivos}{9}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Estrutura do Relatório}{10}{section.1.2}%
+\setlength {\cftchapterindent }{0em} \setlength {\cftchapternumwidth }{\cftlastnumwidth }
+\contentsline {chapter}{\chapternumberline {2}\MakeTextUppercase []{Modelagem Termodinâmica do CSTR com Camisa de Resfriamento}}{11}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Descrição Física do Sistema}{11}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Balanço de Massa}{11}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Balanço de Energia do Reator}{11}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Balanço de Energia da Camisa}{12}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Cinética de Arrhenius}{12}{section.2.5}%
+\contentsline {section}{\numberline {2.6}Parâmetros Nominais do Processo}{12}{section.2.6}%
+\contentsline {section}{\numberline {2.7}Pontos de Equilíbrio e Multiplicidade}{13}{section.2.7}%
+\contentsline {section}{\numberline {2.8}Linearização e Análise de Estabilidade Local}{13}{section.2.8}%
+\setlength {\cftchapterindent }{0em} \setlength {\cftchapternumwidth }{\cftlastnumwidth }
+\contentsline {chapter}{\chapternumberline {3}\MakeTextUppercase []{Contornabilidade e Limites de Van Heerden}}{15}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Conceito de Contornabilidade em Sistemas SISO}{15}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Análise de Van Heerden — Balanço Térmico Estacionário}{15}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Limites de Controlabilidade sob Degradação de UA}{16}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Implicações para o Projeto de Controle}{17}{section.3.4}%
+\setlength {\cftchapterindent }{0em} \setlength {\cftchapternumwidth }{\cftlastnumwidth }
+\contentsline {chapter}{\chapternumberline {4}\MakeTextUppercase []{Arquitetura de Controle PID com Anti-Windup}}{18}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Estrutura PID Paralela em Tempo Discreto}{18}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Saturação de Amplitude e Slew-Rate}{18}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Anti-Windup por Integração Condicional (Clamping)}{19}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Implementação Computacional}{19}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Diagrama de Blocos do Sistema em Malha Fechada}{20}{section.4.5}%
+\setlength {\cftchapterindent }{0em} \setlength {\cftchapternumwidth }{\cftlastnumwidth }
+\contentsline {chapter}{\chapternumberline {5}\MakeTextUppercase []{Identificação FOPTD e Métodos de Sintonia}}{22}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Modelo de Primeira Ordem com Atraso (FOPTD)}{22}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Método de Ziegler-Nichols (Malha Aberta)}{22}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Método de Cohen-Coon}{23}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Método SIMC de Skogestad}{23}{section.5.4}%
+\contentsline {section}{\numberline {5.5}Sintonia ITAE Ótima com Restrição de Robustez}{23}{section.5.5}%
+\contentsline {section}{\numberline {5.6}Tabela Comparativa de Parâmetros de Sintonia}{24}{section.5.6}%
+\setlength {\cftchapterindent }{0em} \setlength {\cftchapternumwidth }{\cftlastnumwidth }
+\contentsline {chapter}{\chapternumberline {6}\MakeTextUppercase []{Benchmark Nominal e Resposta a Perturbações}}{25}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Protocolo de Simulação}{25}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Desempenho sob Sintonia Ziegler-Nichols}{26}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Desempenho sob Sintonia Cohen-Coon}{27}{section.6.3}%
+\contentsline {section}{\numberline {6.4}Desempenho sob Sintonia SIMC (Skogestad)}{27}{section.6.4}%
+\contentsline {section}{\numberline {6.5}Desempenho sob Sintonia ITAE Ótima}{27}{section.6.5}%
+\contentsline {section}{\numberline {6.6}Tabela Comparativa de Métricas de Desempenho}{28}{section.6.6}%
+\contentsline {section}{\numberline {6.7}Análise da Variação Total e Desgaste do Atuador}{28}{section.6.7}%
+\setlength {\cftchapterindent }{0em} \setlength {\cftchapternumwidth }{\cftlastnumwidth }
+\contentsline {chapter}{\chapternumberline {7}\MakeTextUppercase []{Degradação por Fouling e Fronteira de Pareto}}{30}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Modelagem do Encrustamento Térmico (Fouling)}{30}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Impacto na Resposta em Malha Fechada}{30}{section.7.2}%
+\contentsline {section}{\numberline {7.3}Fronteira de Pareto: IAE versus Variação Total (TV)}{31}{section.7.3}%
+\contentsline {section}{\numberline {7.4}Recomendações Práticas para Operação Industrial}{31}{section.7.4}%
+\setlength {\cftchapterindent }{0em} \setlength {\cftchapternumwidth }{\cftlastnumwidth }
+\contentsline {chapter}{\chapternumberline {8}\MakeTextUppercase []{Conclusões e Trabalhos Futuros}}{34}{chapter.8}%
+\contentsline {section}{\numberline {8.1}Síntese dos Resultados}{34}{section.8.1}%
+\contentsline {section}{\numberline {8.2}Contribuições Originais}{35}{section.8.2}%
+\contentsline {section}{\numberline {8.3}Trabalhos Futuros}{35}{section.8.3}%
+\vspace {\cftbeforechapterskip }
+\setlength {\cftchapterindent }{\cftlastnumwidth } \setlength {\cftchapternumwidth }{2em}
+\contentsline {chapter}{\MakeTextUppercase []{Refer\^encias Bibliogr\'aficas}}{37}{section*.20}%

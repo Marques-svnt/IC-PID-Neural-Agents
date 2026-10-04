@@ -1,0 +1,6 @@
+\babel@toc {brazil}{}\relax 
+\babel@toc {brazilian}{}\relax 
+\contentsline {figure}{\numberline {1}{\ignorespaces Diagrama de Van Heerden para o CSTR exotérmico: curva sigmoidal de geração de calor $Q_g(T)$ confrontada com as retas de remoção térmica máxima sob diferentes níveis de degradação por incrustação ($\alpha $).}}{17}{figure.caption.10}%
+\contentsline {figure}{\numberline {2}{\ignorespaces Diagrama de blocos em malha fechada do controle de temperatura do CSTR, com blocos não lineares de saturação de amplitude, limitador de taxa de variação (\textit {slew-rate}) e realimentação condicional de \textit {anti-windup}.}}{21}{figure.caption.11}%
+\contentsline {figure}{\numberline {3}{\ignorespaces Comportamento dinâmico comparativo em malha fechada do CSTR sob os quatro métodos de sintonia avaliados, demonstrando a estabilização por SIMC e ITAE contra a divergência catastrófica por Ziegler-Nichols e Cohen-Coon.}}{28}{figure.caption.13}%
+\contentsline {figure}{\numberline {4}{\ignorespaces Fronteira contínua de Pareto relacionando o erro integral absoluto (IAE) e a variação total do sinal de controle (TV), com destaque para a região do ``joelho'' de compromisso ótimo ($\tau _c \in [0{,}25;\tmspace +\thickmuskip {.2777em} 0{,}40]\tmspace +\thickmuskip {.2777em}\si {\minute }$).}}{32}{figure.caption.16}%
